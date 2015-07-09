@@ -6,6 +6,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 
@@ -24,6 +25,9 @@ public class ZeaxanthinGui extends JFrame
 //     private JButton button;
 //     private JTextField field;
 //     private ImageIcon image1, image2;
+    
+    JMenuBar menubar;
+    JPopupMenu popup;
     
     public ZeaxanthinGui()
     {
@@ -54,7 +58,7 @@ public class ZeaxanthinGui extends JFrame
     
     private void createMenuBar()
     {
-        JMenuBar menubar = new JMenuBar();
+        menubar = new JMenuBar();
         
         /*
          * Menus
@@ -161,6 +165,11 @@ public class ZeaxanthinGui extends JFrame
         menubar.add(node);
         
         setJMenuBar(menubar);
+    }
+    
+    public void createPopupMenu()
+    {
+        popup = new JPopupMenu();
     }
 
 
