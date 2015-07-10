@@ -1,7 +1,7 @@
 package org.zeaio;
 
-import java.awt.EventQueue;
-import java.awt.FlowLayout;
+//import java.awt.EventQueue;
+//import java.awt.FlowLayout;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,16 +12,16 @@ import java.awt.event.MouseListener;
 
 import java.io.File;
 
-import javax.swing.JButton;
+//import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
+//import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
-import javax.swing.ImageIcon;
+//import javax.swing.JTextField;
+//import javax.swing.ImageIcon;
 
 
 
@@ -36,12 +36,14 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
      * Menubar Components */
     private JMenuBar menubar;
     //Menus for the menubar
-    private JMenu file, node;
+    private JMenu file, node, update;
     //Menu Items for "File"
     private JMenuItem file_exit, file_new, file_open, file_save, file_saveAs;
     //Menu Items for "Node"
     private JMenu node_new;
     private JMenuItem node_new_cob, node_new_plant, node_edit;
+    //Menu Items for "Update"
+    private JMenuItem updatePedigree;
     /* End of Menubar Components *
      *================================================*/
     
@@ -92,6 +94,10 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
 //         add(button);
     }
     
+    /**
+     * Creates a Menu Bar along the top of the window/JFrame and contains
+     * multiple options.
+     */
     private void createMenuBar()
     {
         menubar = new JMenuBar();
@@ -102,11 +108,13 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             this.file = new JMenu("File");
             file.setMnemonic(KeyEvent.VK_F);
             this.node = new JMenu("Node");
-            file.setMnemonic(KeyEvent.VK_N);
+            node.setMnemonic(KeyEvent.VK_N);
+            this.update = new JMenu("Update");
+            update.setMnemonic(KeyEvent.VK_U);
             
                 /*
-                * Menus Items for "File"
-                */
+                 * Menus Items for "File"
+                 */
                 this.file_exit = new JMenuItem("Exit", KeyEvent.VK_E);
                 file_exit.setToolTipText("Exit Zeaxanthin");
                 file_exit.addActionListener(this);
@@ -130,8 +138,8 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                 
                 
                 /*
-                * Menu Items for "Node"
-                */
+                 * Menu Items for "Node"
+                 */
                 this.node_new = new JMenu("New...");
                     this.node_new_plant = new JMenuItem("Plant Node", KeyEvent.VK_P);
                     node_new_plant.setToolTipText("Create a New Plant Node");
@@ -147,6 +155,14 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                 this.node_edit = new JMenuItem("Edit...", KeyEvent.VK_E);
                 node_edit.setToolTipText("Create a New Maize Inheritance Model file");
                 node_edit.addActionListener(this);
+                
+                /*
+                 * Menu Items for "Update"
+                 */
+                this.updatePedigree = new JMenu("Update Pedigree");
+                updatePedigree.setMnemonic(KeyEvent.VK_A);
+                updatePedigree.setToolTipText("Update all Pedigree Graphics");
+                update.add(updatePedigree);
             
             //Add all the menu items
             file.add(file_new);
@@ -165,6 +181,9 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         setJMenuBar(menubar);
     }
     
+    /**
+     * Creates Popup Menu options for the opened window/JFrame.
+     */
     private void createPopupMenu()
     {
         this.popup = new JPopupMenu();
@@ -191,6 +210,15 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         
         addMouseListener(this);
     }
+    
+    /**
+     * Safely closes any objects that need to be closed.
+     * Ex: Files
+     */
+    private void pre_kill_protocols()
+    {
+        
+    }
 
     /**
      * Implementation of the ActionListener interface.
@@ -198,6 +226,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     public void actionPerformed(ActionEvent e)
     {
         if(e.getSource() == file_exit) {
+            pre_kill_protocols();
             System.exit(0);
         }
         if(e.getSource() == file_new) {
@@ -214,11 +243,23 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             int returnValue = fileNavGui.showSaveDialog(this);
             
             if(returnValue == JFileChooser.APPROVE_OPTION) {
-                System.exit(0);
+                String savePath = fileNavGui.getSelectedFile().getAbsolutePath();
+                //TODO save Java object in serializable form.
+                System.out.println(savePath);
+                //System.exit(0);
             }
         }
         if(e.getSource() == file_saveAs) {
+            fileNavGui.setDialogType(JFileChooser.SAVE_DIALOG);
+            fileNavGui.setDialogTitle("Save File As...");
+            int returnValue = fileNavGui.showDialog(this, "Save As");
             
+            if(returnValue == JFileChooser.APPROVE_OPTION) {
+                String saveAsPath = fileNavGui.getSelectedFile().getAbsolutePath();
+                //TODO save Java object in serializable form.
+                //System.out.println(path);
+                //System.exit(0);
+            }
         }
         if(e.getSource() == node_new_cob ||
            e.getSource() == popup_node_new_cob) {
@@ -231,6 +272,9 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         if(e.getSource() == node_edit ||
            e.getSource() == popup_node_edit) {
             
+        }
+        if(e.getSource() == updatePedigree) {
+        
         }
 //         if(e.getSource() == ) {
 //             
