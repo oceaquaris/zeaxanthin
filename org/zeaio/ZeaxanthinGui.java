@@ -23,6 +23,11 @@ import javax.swing.JPopupMenu;
 //import javax.swing.JTextField;
 //import javax.swing.ImageIcon;
 
+import javax.swing.filechooser.FileFilter;
+
+//our libs
+import org.zeaio.FileFilterZXT;
+
 
 
 public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListener
@@ -59,6 +64,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     /*================================================
      * File Choosing Components */
     private JFileChooser fileNavGui;
+    private FileFilter[] fileFilters;
     /* End of File Choosing Components *
      *================================================*/
     
@@ -68,8 +74,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     {
         createMenuBar();
         createPopupMenu();
-        //initialize JFileChooser
-        fileNavGui = new JFileChooser();
+        createFileChooser();
         
         
 //         setLayout(new FlowLayout());
@@ -103,8 +108,8 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         menubar = new JMenuBar();
         
             /*
-            * Menus
-            */
+             * Menus
+             */
             this.file = new JMenu("File");
             file.setMnemonic(KeyEvent.VK_F);
             this.node = new JMenu("Node");
@@ -186,29 +191,51 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
      */
     private void createPopupMenu()
     {
+        //initialize the popup menu
         this.popup = new JPopupMenu();
         
+            //create a submenu that will contain menu items within itself
             this.popup_node_new = new JMenu("New...");
-                this.popup_node_new_plant = new JMenuItem("Plant Node", KeyEvent.VK_P);
+            
+                //create a menu item for "New..."
+                this.popup_node_new_plant = new JMenuItem("Plant Node");
                 popup_node_new_plant.setToolTipText("Create a New Plant Node");
-                popup_node_new_plant.addActionListener(this);
+                popup_node_new_plant.addActionListener(this); //'this' listens for when this menu is selected
                 
-                this.popup_node_new_cob = new JMenuItem("Cob Node", KeyEvent.VK_C);
+                //create another menu item for "New..."
+                this.popup_node_new_cob = new JMenuItem("Cob Node");
                 popup_node_new_cob.setToolTipText("Create a New Cob Node");
-                popup_node_new_cob.addActionListener(this);
+                popup_node_new_cob.addActionListener(this); //'this' listens for when this menu is selected
                 
+            //add menu items created above to the "New..." popup submenu
             popup_node_new.add(popup_node_new_plant);
             popup_node_new.add(popup_node_new_cob);
             
-            this.popup_node_edit = new JMenuItem("Edit...", KeyEvent.VK_E);
+            //create a menu item for popup menu
+            this.popup_node_edit = new JMenuItem("Edit...");
             popup_node_edit.setToolTipText("Create a New Maize Inheritance Model file");
-            popup_node_edit.addActionListener(this);
+            popup_node_edit.addActionListener(this); //'this' listens for when this menu is selected
         
+        //add submenu(s) and menu items to popup
         popup.add(popup_node_new);
-        popup.addSeparator();
+        popup.addSeparator(); //a line separator
         popup.add(node_edit);
         
+        //'this' listens for when the mouse is right clicked
         addMouseListener(this);
+        return;
+    }
+    
+    private void createFileChooser()
+    {
+        //initialize JFileChooser
+        fileNavGui = new JFileChooser();
+        fileNavGui.setAcceptAllFileFilterUsed(false);
+        fileFilters = new FileFilter[1];
+        fileFilters[0] = new FileFilterZXT();
+        for(FileFilter filter : fileFilters) {
+            fileNavGui.addChoosableFileFilter(filter);
+        }
     }
     
     /**
@@ -242,11 +269,25 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         if(e.getSource() == file_save) {
             int returnValue = fileNavGui.showSaveDialog(this);
             
+            File saveFile;
             if(returnValue == JFileChooser.APPROVE_OPTION) {
-                String savePath = fileNavGui.getSelectedFile().getAbsolutePath();
-                //TODO save Java object in serializable form.
-                System.out.println(savePath);
-                //System.exit(0);
+                //may in the future allow for more save options
+                if(fileNavGui.getFileFilter() == fileFilters[0]) {
+                    if(FileFilterZXT.getExtension( fileNavGui.getSelectedFile() )
+                                    .equalsIgnoreCase(FileFilterZXT.ZEAXANTHIN_FILE_EXTENSION)) {
+                        saveFile = fileNavGui.getSelectedFile();
+                        // filename is OK as is
+                    }
+                    else {
+                        //append .zxt to name
+                        saveFile = new File(fileNavGui.getSelectedFile().toString()
+                                            + "." + FileFilterZXT.ZEAXANTHIN_FILE_EXTENSION);
+                    }
+                    String savePath = saveFile.getAbsolutePath();
+                    //TODO save Java object in serializable form.
+                    System.out.println(savePath);
+                    //System.exit(0);
+                }
             }
         }
         if(e.getSource() == file_saveAs) {
