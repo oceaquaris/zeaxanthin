@@ -64,10 +64,10 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     
     /*================================================
      * Popup Menu Components */
-    private JPopupMenu popup;
+    private JPopupMenu popup_new, popup_edit;
     //Menus Items for the popup menu
-    private JMenu popup_node_new;
-    private JMenuItem popup_node_edit, popup_node_new_cob, popup_node_new_plant;
+    private JMenu popup_new_node;
+    private JMenuItem popup_edit_node, popup_new_node_cob, popup_new_node_plant;
     /* End of Popup Menu Components *
      *================================================*/
     
@@ -99,7 +99,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     public ZeaxanthinGui()
     {
         createMenuBar();
-        createPopupMenu();
+        createPopupMenus();
         createFileChooser();
         createGraph();
         
@@ -217,37 +217,41 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     /**
      * Creates Popup Menu options for the opened window/JFrame.
      */
-    private void createPopupMenu()
+    private void createPopupMenus()
     {
-        //initialize the popup menu
-        this.popup = new JPopupMenu();
+        //initialize the first popup menu
+        this.popup_new = new JPopupMenu();
         
             //create a submenu that will contain menu items within itself
-            this.popup_node_new = new JMenu("New...");
+            this.popup_new_node = new JMenu("New...");
             
                 //create a menu item for "New..."
-                this.popup_node_new_plant = new JMenuItem("Plant Node");
-                popup_node_new_plant.setToolTipText("Create a New Plant Node");
-                popup_node_new_plant.addActionListener(this); //'this' listens for when this menu is selected
+                this.popup_new_node_plant = new JMenuItem("Plant Node");
+                popup_new_node_plant.setToolTipText("Create a New Plant Node");
+                popup_new_node_plant.addActionListener(this); //'this' listens for when this menu is selected
                 
                 //create another menu item for "New..."
-                this.popup_node_new_cob = new JMenuItem("Cob Node");
-                popup_node_new_cob.setToolTipText("Create a New Cob Node");
-                popup_node_new_cob.addActionListener(this); //'this' listens for when this menu is selected
+                this.popup_new_node_cob = new JMenuItem("Cob Node");
+                popup_new_node_cob.setToolTipText("Create a New Cob Node");
+                popup_new_node_cob.addActionListener(this); //'this' listens for when this menu is selected
                 
             //add menu items created above to the "New..." popup submenu
-            popup_node_new.add(popup_node_new_plant);
-            popup_node_new.add(popup_node_new_cob);
+            popup_new_node.add(popup_new_node_plant);
+            popup_new_node.add(popup_new_node_cob);
             
-            //create a menu item for popup menu
-            this.popup_node_edit = new JMenuItem("Edit...");
-            popup_node_edit.setToolTipText("Create a New Maize Inheritance Model file");
-            popup_node_edit.addActionListener(this); //'this' listens for when this menu is selected
         
         //add submenu(s) and menu items to popup
-        popup.add(popup_node_new);
-        popup.addSeparator(); //a line separator
-        popup.add(popup_node_edit);
+        popup_new.add(popup_new_node);
+        
+        
+        this.popup_edit = new JPopupMenu();
+        
+        //create a menu item for popup menu
+        this.popup_edit_node = new JMenuItem("Edit...");
+        popup_edit_node.setToolTipText("Create a New Maize Inheritance Model file");
+        popup_edit_node.addActionListener(this); //'this' listens for when this menu is selected
+        
+        popup_edit.add(popup_edit_node);
         
         //'this' listens for when the mouse is right clicked
         addMouseListener(this);
@@ -355,15 +359,15 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             }
         }
         if(e.getSource() == node_new_cob ||
-           e.getSource() == popup_node_new_cob) {
+           e.getSource() == popup_new_node_cob) {
             
         }
         if(e.getSource() == node_new_plant ||
-           e.getSource() == popup_node_new_plant) {
+           e.getSource() == popup_new_node_plant) {
             
         }
         if(e.getSource() == node_edit ||
-           e.getSource() == popup_node_edit) {
+           e.getSource() == popup_edit_node) {
             
         }
         if(e.getSource() == updatePedigree) {
@@ -395,10 +399,10 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             Object cellSelected = graphComponent.getCellAt(e.getX(), e.getY());
             
             if(cellSelected != null) {
-            
+                popup_edit.show(e.getComponent(), e.getX(), e.getY());
             }
             else {
-                popup.show(e.getComponent(), e.getX(), e.getY());
+                popup_new.show(e.getComponent(), e.getX(), e.getY());
             }
         }
     }
