@@ -14,3 +14,4 @@ hs_err_pid*
 # BlueJ files
 *.ctxt
 *.bluej
+package.bluej
