@@ -262,10 +262,14 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     {
         //initialize JFileChooser
         fileNavGui = new JFileChooser();
+        //we only want files of type *.zxt
         fileNavGui.setAcceptAllFileFilterUsed(false);
-        fileFilters = new FileFilter[1];
-        fileFilters[0] = new FileFilterZXT();
-        for(FileFilter filter : fileFilters) {
+        
+        //adding file filter(s) for desired file types
+        fileFilters = new FileFilter[1]; //create array...
+        fileFilters[0] = new FileFilterZXT(); //filter for *.zxt
+        
+        for(FileFilter filter : fileFilters) { //add 'em!
             fileNavGui.addChoosableFileFilter(filter);
         }
     }
@@ -332,6 +336,10 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                     if(FileFilterZXT.getExtension( fileNavGui.getSelectedFile() )
                                     .equalsIgnoreCase(FileFilterZXT.ZEAXANTHIN_FILE_EXTENSION)) {
                         saveFile = fileNavGui.getSelectedFile();
+                        ZeaxanthinFileIO<String> io = 
+                                new ZeaxanthinFileIO<String>(saveFile.getAbsolutePath(),
+                                                             new String("This string has been saved!"));
+                        io.serializeTargetObject();
                         // filename is OK as is
                     }
                     else {

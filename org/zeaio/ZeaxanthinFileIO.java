@@ -1,44 +1,134 @@
 package org.zeaio;
 
-import java.io.PrintWriter;
-import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 
-import java.util.ArrayList;
-//our libs
-import org.zeatrace.ZeaNode;
+import java.lang.Exception;
 
-public class ZeaxanthinFileIO extends PrintWriter
+
+public class ZeaxanthinFileIO<E extends Serializable>
 {
-    private String fileName = "Unknown";
-    private ArrayList<ZeaNode> allNodes;
-
+    protected E object;
+    protected File filePath;
     
-    public ZeaxanthinFileIO(String fileName, String charset)
-           throws FileNotFoundException, UnsupportedEncodingException
-    {
-        super(fileName, charset);
-        this.fileName = fileName;
-        this.allNodes = new ArrayList<ZeaNode>();
-    }
-    public ZeaxanthinFileIO(String fileName)
-           throws FileNotFoundException
-    {
-        super(fileName);
-        this.fileName = fileName;
-        this.allNodes = new ArrayList<ZeaNode>();
-    }
     
-    public void addNodes(ArrayList<ZeaNode> additionalNodes)
+    /*
+     * Constructors
+     */
+    public ZeaxanthinFileIO(String filePath, E object)
     {
-        for(ZeaNode tmp : additionalNodes) {
-            this.allNodes.add(tmp);
+        if(filePath == null) {
+            this.filePath = null;
         }
-        return;
+        else {
+            this.filePath = new File(filePath);
+        }
+        this.object = object;
     }
-    public void addNode(ZeaNode additionalNode)
+    public ZeaxanthinFileIO(File filePath, E object)
     {
-        this.allNodes.add(additionalNode);
-        return;
+        this.filePath = filePath;
+        this.object = object;
+    }
+    
+    
+    /*
+     * Set methods
+     */
+    public void setFilePath(String filePath)
+    {
+        this.filePath = new File(filePath);
+    }
+    public void setFilePath(File filePath)
+    {
+        this.filePath = filePath;
+    }
+    public void setTargetObject(E object)
+    {
+        this.object = object;
+    }
+    
+    /*
+     * Get methods
+     */
+    public E getTargetObject()
+    {
+        return this.object;
+    }
+    public File getFilePath()
+    {
+        return this.filePath;
+    }
+    
+    /*
+     * Export object as a binary stream
+     */
+    public void serializeTargetObject()
+    {
+        if(object == null || filePath == null) {
+            return;
+        }
+        
+        FileOutputStream fout = null;
+        ObjectOutputStream oos = null;
+        
+        try {
+            fout = new FileOutputStream(filePath);
+            oos = new ObjectOutputStream(fout);
+            oos.writeObject(object);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            if(oos != null) {
+                oos.close();
+            }
+            if(fout != null) {
+                fout.close();
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /*
+     * Load object from a File
+     */
+    public E loadSerializedObjectFromFilePath()
+    {
+        if(filePath == null) {
+            return null;
+        }
+        
+        FileInputStream fin = null;
+        ObjectInputStream ois = null;
+        
+        try {
+            fin = new FileInputStream(filePath);
+            ois = new ObjectInputStream(fin);
+            this.object = (E)(ois.readObject());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            if(fin != null) {
+                fin.close();
+            }
+            if(ois != null) {
+                ois.close();
+            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+        
+        return this.object;
     }
 }
