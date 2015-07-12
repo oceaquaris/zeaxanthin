@@ -1,5 +1,6 @@
 package org.zeaio;
 
+import java.awt.Color;
 //import java.awt.EventQueue;
 //import java.awt.FlowLayout;
 
@@ -25,13 +26,21 @@ import javax.swing.JPopupMenu;
 
 import javax.swing.filechooser.FileFilter;
 
-//our libs
+/*
+ * Our libraries
+ */
 import org.zeaio.FileFilterZXT;
 
+/*
+ * The mxGraph libraries
+ */
+import com.mxgraph.swing.mxGraphComponent;
+import com.mxgraph.view.mxGraph;
 
 
 public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListener
 {
+    public static final String VERSION = "0.1.0";
 //     private JLabel label;
 //     private JButton button;
 //     private JTextField field;
@@ -52,6 +61,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     /* End of Menubar Components *
      *================================================*/
     
+    
     /*================================================
      * Popup Menu Components */
     private JPopupMenu popup;
@@ -61,6 +71,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     /* End of Popup Menu Components *
      *================================================*/
     
+    
     /*================================================
      * File Choosing Components */
     private JFileChooser fileNavGui;
@@ -68,14 +79,29 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     /* End of File Choosing Components *
      *================================================*/
     
-    File loadedFile;
+    
+    /*================================================
+     * mxGraph environment Components */
+    private mxGraph graph;
+    private Object graphParent;
+    private mxGraphComponent graphComponent;
+    /* Endo of mxGraph environment Components *
+     *================================================*/
+    
+    
+    /*================================================
+     * loaded file Components */
+    private File loadedFile;
+    //private boolean loadedFile_isSaved;
+    /* Endo of loaded file Components *
+     *================================================*/
     
     public ZeaxanthinGui()
     {
         createMenuBar();
         createPopupMenu();
         createFileChooser();
-        
+        createGraph();
         
 //         setLayout(new FlowLayout());
 //         
@@ -158,16 +184,15 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                 node_new.add(node_new_cob);
                 
                 this.node_edit = new JMenuItem("Edit...", KeyEvent.VK_E);
-                node_edit.setToolTipText("Create a New Maize Inheritance Model file");
+                node_edit.setToolTipText("Edit a Node");
                 node_edit.addActionListener(this);
                 
                 /*
                  * Menu Items for "Update"
                  */
-                this.updatePedigree = new JMenu("Update Pedigree");
+                this.updatePedigree = new JMenuItem("Update Pedigree");
                 updatePedigree.setMnemonic(KeyEvent.VK_A);
                 updatePedigree.setToolTipText("Update all Pedigree Graphics");
-                update.add(updatePedigree);
             
             //Add all the menu items
             file.add(file_new);
@@ -179,9 +204,12 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             node.add(node_new);
             node.addSeparator();
             node.add(node_edit);
+            
+            update.add(updatePedigree);
         
         menubar.add(file);
         menubar.add(node);
+        menubar.add(update);
         
         setJMenuBar(menubar);
     }
@@ -219,7 +247,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         //add submenu(s) and menu items to popup
         popup.add(popup_node_new);
         popup.addSeparator(); //a line separator
-        popup.add(node_edit);
+        popup.add(popup_node_edit);
         
         //'this' listens for when the mouse is right clicked
         addMouseListener(this);
@@ -236,6 +264,30 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         for(FileFilter filter : fileFilters) {
             fileNavGui.addChoosableFileFilter(filter);
         }
+    }
+    
+    private void createGraph()
+    {
+        this.graph = new mxGraph();
+        this.graphParent = graph.getDefaultParent();
+        
+        graph.getModel().beginUpdate();
+        
+        try
+        {
+            Object v1 = graph.insertVertex(graphParent, null, "Hello", 20, 20, 80, 30);
+            Object v2 = graph.insertVertex(graphParent, null, "World!", 240, 150, 80, 30);
+            graph.insertEdge(graphParent, null, "Edge", v1, v2);
+        }
+        finally
+        {
+            graph.getModel().endUpdate();
+        }
+
+        this.graphComponent = new mxGraphComponent(graph);
+        getContentPane().add(graphComponent);
+        
+        graphComponent.getGraphControl().addMouseListener(this);
     }
     
     /**
@@ -340,7 +392,14 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     public void mouseReleased(MouseEvent e)
     {
         if(e.getButton() == MouseEvent.BUTTON3) {
-            popup.show(e.getComponent(), e.getX(), e.getY());
+            Object cellSelected = graphComponent.getCellAt(e.getX(), e.getY());
+            
+            if(cellSelected != null) {
+            
+            }
+            else {
+                popup.show(e.getComponent(), e.getX(), e.getY());
+            }
         }
     }
 
@@ -352,6 +411,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             public void run() {
                 ZeaxanthinGui gui = new ZeaxanthinGui();
 
+                gui.getContentPane().setBackground( Color.BLACK );
                 gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 //gui.pack();
                 gui.setSize(500, 500);
@@ -359,8 +419,5 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                 gui.setTitle("Zeaxanthin");
             }
         });
-        
-        
-        
     }
 }

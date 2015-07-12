@@ -3,6 +3,8 @@ package org.zeaio;
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+
+import java.util.ArrayList;
 //our libs
 import org.zeatrace.ZeaNode;
 
@@ -12,14 +14,14 @@ public class ZeaxanthinFileIO extends PrintWriter
     private ArrayList<ZeaNode> allNodes;
 
     
-    public FilePrintWriter(String fileName, String charset)
+    public ZeaxanthinFileIO(String fileName, String charset)
            throws FileNotFoundException, UnsupportedEncodingException
     {
         super(fileName, charset);
         this.fileName = fileName;
         this.allNodes = new ArrayList<ZeaNode>();
     }
-    public FilePrintWriter(String fileName)
+    public ZeaxanthinFileIO(String fileName)
            throws FileNotFoundException
     {
         super(fileName);
