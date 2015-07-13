@@ -1,29 +1,24 @@
 package org.zeaio;
 
+/*
+ * Standard Java libraries
+ */
 import java.awt.Color;
-//import java.awt.EventQueue;
-//import java.awt.FlowLayout;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-
 import java.io.File;
-
-//import javax.swing.JButton;
+import java.lang.Exception;
+import java.lang.RuntimeException;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-//import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-//import javax.swing.JTextField;
-//import javax.swing.ImageIcon;
-
 import javax.swing.filechooser.FileFilter;
 
 /*
@@ -36,6 +31,9 @@ import org.zeaio.FileFilterZXT;
  */
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
+import com.mxgraph.io.mxCodec;
+import com.mxgraph.util.mxUtils;
+import com.mxgraph.util.mxXmlUtils;
 
 
 public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListener
@@ -312,48 +310,78 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
      */
     public void actionPerformed(ActionEvent e)
     {
+        /*
+         * Exit the program
+         */
         if(e.getSource() == file_exit) {
             pre_kill_protocols();
             System.exit(0);
         }
+        /*
+         * Create a new mxGraph
+         */
         if(e.getSource() == file_new) {
             
         }
+        /*
+         * Open a file
+         */
         if(e.getSource() == file_open) {
             int returnValue = fileNavGui.showOpenDialog(this);
             
             if(returnValue == JFileChooser.APPROVE_OPTION) {
                 loadedFile = fileNavGui.getSelectedFile();
             }
+//                         Document document = mxXmlUtils.parseXml(URLDecoder.decode(xml. "UTF-8"));
+//                         mxCodex codec = new mxCodex(document);
+//                         codec.decode(document.getDocumentElement(), graph.getModel());
         }
+        /*
+         * Save the mxGraph
+         */
         if(e.getSource() == file_save) {
             int returnValue = fileNavGui.showSaveDialog(this);
             
             File saveFile;
             if(returnValue == JFileChooser.APPROVE_OPTION) {
+            
                 //may in the future allow for more save options
                 if(fileNavGui.getFileFilter() == fileFilters[0]) {
+                    // The following if-else statement forces the file extension
+                    // to become .zxt
                     if(FileFilterZXT.getExtension( fileNavGui.getSelectedFile() )
                                     .equalsIgnoreCase(FileFilterZXT.ZEAXANTHIN_FILE_EXTENSION)) {
-                        saveFile = fileNavGui.getSelectedFile();
-                        ZeaxanthinFileIO<String> io = 
-                                new ZeaxanthinFileIO<String>(saveFile.getAbsolutePath(),
-                                                             new String("This string has been saved!"));
-                        io.serializeTargetObject();
                         // filename is OK as is
+                        saveFile = fileNavGui.getSelectedFile();
                     }
                     else {
                         //append .zxt to name
                         saveFile = new File(fileNavGui.getSelectedFile().toString()
                                             + "." + FileFilterZXT.ZEAXANTHIN_FILE_EXTENSION);
                     }
+                    
+                    //retrieve the path to save to
                     String savePath = saveFile.getAbsolutePath();
-                    //TODO save Java object in serializable form.
-                    System.out.println(savePath);
+                    //Attempt to save the file
+                    try {
+                        mxCodec codec = new mxCodec();
+                        String xml = mxXmlUtils.getXml(codec.encode(graph.getModel()));
+                        mxUtils.writeFile(xml, savePath);
+                    }
+                    catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    
+                    System.out.println("File saved to: " + savePath);
                     //System.exit(0);
+                    
                 }
+                
             }
         }
+        /*
+         * Save the mxGraph as/save a copy.
+         */
         if(e.getSource() == file_saveAs) {
             fileNavGui.setDialogType(JFileChooser.SAVE_DIALOG);
             fileNavGui.setDialogTitle("Save File As...");
