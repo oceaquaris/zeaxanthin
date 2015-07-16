@@ -100,6 +100,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     
     public ZeaxanthinGui()
     {
+        org.zeatrace.ZeaTrace.registerZeaTraceElements();
         createMenuBar();
         createPopupMenus();
         createFileChooser();
