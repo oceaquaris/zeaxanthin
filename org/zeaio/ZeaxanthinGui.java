@@ -20,11 +20,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.filechooser.FileFilter;
+import org.w3c.dom.Document;
 
 /*
  * Our libraries
  */
 import org.zeaio.FileFilterZXT;
+import org.zeatrace.*;
 
 /*
  * The mxGraph libraries
@@ -38,11 +40,11 @@ import com.mxgraph.util.mxXmlUtils;
 
 public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListener
 {
+    /**
+     * Zeaxanthin version
+     */
     public static final String VERSION = "0.1.0";
-//     private JLabel label;
-//     private JButton button;
-//     private JTextField field;
-//     private ImageIcon image1, image2;
+
     
     /*================================================
      * Menubar Components */
@@ -66,6 +68,8 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     //Menus Items for the popup menu
     private JMenu popup_new_node;
     private JMenuItem popup_edit_node, popup_new_node_cob, popup_new_node_plant;
+    //passing the coordinates to ActionListener
+    private int click_x = 0, click_y = 0;
     /* End of Popup Menu Components *
      *================================================*/
     
@@ -99,28 +103,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         createMenuBar();
         createPopupMenus();
         createFileChooser();
-        createGraph();
-        
-//         setLayout(new FlowLayout());
-//         
-//         image1 = new ImageIcon(getClass().getResource("corn-kernel-diagram.jpg"));
-//         label1 = new JLabel(image1);
-//         add(label1);
-//         
-//         image2 = new ImageIcon(getClass().getResource("corn-kernel-anatomy.png"));
-//         label2 = new JLabel(image2);
-//         add(label2);
-        
-//         setLayout(new FlowLayout());
-//         
-//         label = new JLabel("Label");
-//         add(label);
-//         
-//         field = new JTextField("Field");
-//         add(field);
-//         
-//         button = new JButton("Button");
-//         add(button);
+        //createNewGraph();
     }
     
     /**
@@ -272,7 +255,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         }
     }
     
-    private void createGraph()
+    private void createNewGraph()
     {
         this.graph = new mxGraph();
         this.graphParent = graph.getDefaultParent();
@@ -294,6 +277,34 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         getContentPane().add(graphComponent);
         
         graphComponent.getGraphControl().addMouseListener(this);
+        
+        //display it!
+        setVisible(true);
+    }
+    
+    /**
+     * Precondition: 
+     */
+    private void displayLoadedGraph()
+    {
+        this.graphParent = graph.getDefaultParent();
+        
+        graph.getModel().beginUpdate();
+        
+        try {
+        
+        }
+        finally {
+            graph.getModel().endUpdate();
+        }
+        
+        this.graphComponent = new mxGraphComponent(graph);
+        getContentPane().add(graphComponent);
+        
+        graphComponent.getGraphControl().addMouseListener(this);
+        
+        //display it!
+        setVisible(true);
     }
     
     /**
@@ -321,7 +332,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
          * Create a new mxGraph
          */
         if(e.getSource() == file_new) {
-            
+            createNewGraph();
         }
         /*
          * Open a file
@@ -331,10 +342,19 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             
             if(returnValue == JFileChooser.APPROVE_OPTION) {
                 loadedFile = fileNavGui.getSelectedFile();
+                
+                try {
+                    Document document = mxXmlUtils.parseXml( mxUtils.readFile( loadedFile.getAbsolutePath() ) );
+                    mxCodec codec = new mxCodec(document);
+                    this.graph = new mxGraph();
+                    codec.decode(document.getDocumentElement(), graph.getModel());
+                }
+                catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+                
+                displayLoadedGraph();
             }
-//                         Document document = mxXmlUtils.parseXml(URLDecoder.decode(xml. "UTF-8"));
-//                         mxCodex codec = new mxCodex(document);
-//                         codec.decode(document.getDocumentElement(), graph.getModel());
         }
         /*
          * Save the mxGraph
@@ -396,11 +416,21 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         }
         if(e.getSource() == node_new_cob ||
            e.getSource() == popup_new_node_cob) {
-            
+            try {
+                graph.insertVertex(graphParent, null, new Cob(), click_x, click_y, 80, 30);
+            }
+            catch (Exception err) {
+                err.printStackTrace();
+            }
         }
         if(e.getSource() == node_new_plant ||
            e.getSource() == popup_new_node_plant) {
-            
+            try {
+                graph.insertVertex(graphParent, null, new Plant(), click_x, click_y, 80, 30);
+            }
+            catch (Exception err) {
+                err.printStackTrace();
+            }
         }
         if(e.getSource() == node_edit ||
            e.getSource() == popup_edit_node) {
@@ -438,7 +468,9 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                 popup_edit.show(e.getComponent(), e.getX(), e.getY());
             }
             else {
-                popup_new.show(e.getComponent(), e.getX(), e.getY());
+                click_x = e.getX();
+                click_y = e.getY();
+                popup_new.show(e.getComponent(), click_x, click_y);
             }
         }
     }

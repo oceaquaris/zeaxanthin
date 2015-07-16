@@ -1,68 +1,46 @@
 package org.zeatrace;
 
-import java.awt.Color;
-//our libs
-import org.zeatrace.Seed;
+import java.io.Serializable;
 
-public class Transposon
+public class Transposon implements Serializable
 {
-    //constants
-    public static final Transposon RED_DOT = new Transposon(Color.RED, "Dot");
-    public static final Transposon RED_SWIRL = new Transposon(Color.RED, "Swirl");
-    public static final Transposon BLUE_SPECKLE = new Transposon(Color.BLUE, "Speckle");
+    /**
+     * Color of the transposon.
+     */
+    protected String transposonColor = null;
     
     /**
-     * Instance data.
+     * Description of the transposon.
      */
-    private String description;
-    private Color color;
-    
+    protected String transposonDescription = null;
+
     /**
-     * Constructor
+     * An empty constructor.
      */
-    public Transposon(Color color, String description)
+    public Transposon()
     {
-        this.color = color;
-        this.description = description;
     }
     
     /**
      * Get methods.
      */
-    public String getDescription()
+    public String getTransposonDescription()
     {
-        return this.description;
+        return this.transposonDescription;
     }
-    public Color getColor()
+    public void setTransposonDescription(String transposonDescription)
     {
-        return this.color;
-    }
-    
-    /**
-     * For comparing transposons.
-     */
-    public boolean equals(Transposon t)
-    {
-        return (this.description.equalsIgnoreCase(t.getDescription()) &&
-                this.color.equals(t.getColor()) );
+        this.transposonDescription = transposonDescription;
+        return;
     }
     
-    /**
-     * For getting all predefined constant Transposon types.
-     */
-    public static Transposon[] getPredefinedTransposons()
+    public String getTransposonColor()
     {
-        Transposon[] all = { RED_DOT,
-                             RED_SWIRL,
-                             BLUE_SPECKLE };
-        return all;
+        return this.transposonColor;
     }
-    
-    /**
-     * String representation of the transposon.
-     */
-    public String toString()
+    public void setTransposonColor(String transposonColor)
     {
-        return "\"" + Seed.colorToString(this.color) + "," + this.description + "\"";
+        this.transposonColor = transposonColor;
+        return;
     }
 }
