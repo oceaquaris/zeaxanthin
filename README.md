@@ -2,7 +2,7 @@
 ============
 
 ## Dependencies:
-* xstream-1.4.8  
+* [xstream-1.4.8](http://x-stream.github.io/)  ([Dependencies](http://repo1.maven.org/maven2/com/thoughtworks/xstream/xstream-distribution/1.4.8/xstream-distribution-1.4.8-bin.zip))  
   * cglib-nodep-2.2  
   * dom4j-1.6.1  
   * jdom2-2.0.5  
@@ -17,4 +17,4 @@
   * xmlpull-1.1.3.1  
   * xom-1.1  
   * xpp3_min-1.1.4c  
-* jGraphX-3.3.1.1  
+* [jGraphX-3.3.1.1](https://github.com/jgraph/jgraphx)  
