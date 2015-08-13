@@ -1,5 +1,4 @@
 # zeaxanthin
-============
 A Java-based program for basic mapping of maize breeding throughout many generations  
 Licensed under GNU GPL v2 (see [LICENSE](https://github.com/oceaquaris/zeaxanthin/blob/master/LICENSE) for details)
 ## Dependencies:
