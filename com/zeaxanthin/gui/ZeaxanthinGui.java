@@ -6,478 +6,546 @@ package com.zeaxanthin.gui;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.Toolkit;
 import java.io.File;
+import java.io.FileReader;
 import java.lang.Exception;
 import java.lang.RuntimeException;
+import java.util.List;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.filechooser.FileFilter;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import org.w3c.dom.Document;
 
 /*
  * Our libraries
  */
-import com.zeaxanthin.gui.FileFilterZXT;
+import com.zeaxanthin.gui.FileTypeCSV;
 import com.zeaxanthin.structure.*;
 
-/*
- * The mxGraph libraries
- */
-import com.mxgraph.swing.mxGraphComponent;
-import com.mxgraph.view.mxGraph;
-import com.mxgraph.io.mxCodec;
-import com.mxgraph.util.mxUtils;
-import com.mxgraph.util.mxXmlUtils;
 
+/*
+ * opencsv parser libraries
+ */
+import com.opencsv.CSVReader;
 
 public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListener
 {
-    /**
+    /*
+     * The name of the program: Zeaxanthin
+     */
+    public static final String ZEAXANTHIN = "Zeaxanthin";
+    
+    /*
      * Zeaxanthin version
      */
-    public static final String VERSION = "0.1.0";
-
+    public static final String VERSION = "0.1.1";
     
-    /*================================================
-     * Menubar Components */
+    
+    
+    /****************************************************************
+     * Menubar and Popup Components
+     *  Includes:
+     *      The menubar
+     *      The popup menu
+     *      Menus for the menubar and popup menu
+     *      Menuitems for menus
+     *      Accelerator constants
+     */
+    
+    /*
+     * The menubar across the top
+     */
     private JMenuBar menubar;
-    //Menus for the menubar
-    private JMenu file, node, update;
-    //Menu Items for "File"
-    private JMenuItem file_exit, file_new, file_open, file_save, file_saveAs;
-    //Menu Items for "Node"
-    private JMenu node_new;
-    private JMenuItem node_new_cob, node_new_plant, node_edit;
-    //Menu Items for "Update"
-    private JMenuItem updatePedigree;
-    /* End of Menubar Components *
-     *================================================*/
+    
+    /*
+     * The popup menu
+     */
+    private JPopupMenu popup;
+
+    /*
+     * Menus for the menubar and popup
+     */
+    private JMenu m_file,
+                  m_new,
+                  p_new,
+                  m_update;
+    
+    /*
+     * Menu Items for the menubar and popup
+     */
+    private JMenuItem m_exit,
+                      m_new_HW,
+                      p_new_HW,
+                      m_open,
+                      m_save,
+                      m_saveAs,
+                      m_updateScreen;
+    
+    /*
+     * Accelerators (shortcuts) for the menus
+     */
+    private static final KeyStroke
+        CTRL_O = KeyStroke.getKeyStroke(KeyEvent.VK_O,
+                                        Toolkit.getDefaultToolkit()
+                                               .getMenuShortcutKeyMask()),
+        CTRL_S = KeyStroke.getKeyStroke(KeyEvent.VK_S,
+                                        Toolkit.getDefaultToolkit()
+                                               .getMenuShortcutKeyMask()),
+        CTRL_SHIFT_S = KeyStroke.getKeyStroke(KeyEvent.VK_S,
+                                              InputEvent.CTRL_DOWN_MASK+InputEvent.SHIFT_DOWN_MASK),
+        CTRL_E = KeyStroke.getKeyStroke(KeyEvent.VK_E,
+                                        Toolkit.getDefaultToolkit()
+                                               .getMenuShortcutKeyMask());
+    /* 
+     * End of Menubar and Popup Components *
+     ****************************************************************/
+    
+    /****************************************************************
+     * Table Components
+     */
+    private ZeaTable table = null;
+    private JScrollPane scrollTable = null;
+    /*
+     * End of Table Components
+     ****************************************************************/
+    
+    /****************************************************************
+     * File Choosing Components
+     */
+    private JFileChooser fileChooser;
+    private FileTypeCSV csvFilter;
+    /*
+     * End of File Choosing Components
+     ****************************************************************/
     
     
-    /*================================================
-     * Popup Menu Components */
-    private JPopupMenu popup_new, popup_edit;
-    //Menus Items for the popup menu
-    private JMenu popup_new_node;
-    private JMenuItem popup_edit_node, popup_new_node_cob, popup_new_node_plant;
-    //passing the coordinates to ActionListener
-    private int click_x = 0, click_y = 0;
-    /* End of Popup Menu Components *
-     *================================================*/
+    /****************************************************************
+     * loaded file Components
+     */
+    private File loadedFile = null;
+    private boolean loadedFile_isSaved = true;
+    /* 
+     * Endo of loaded file Components
+     ****************************************************************/
     
     
-    /*================================================
-     * File Choosing Components */
-    private JFileChooser fileNavGui;
-    private FileFilter[] fileFilters;
-    /* End of File Choosing Components *
-     *================================================*/
     
-    
-    /*================================================
-     * mxGraph environment Components */
-    private mxGraph graph;
-    private Object graphParent;
-    private mxGraphComponent graphComponent;
-    /* Endo of mxGraph environment Components *
-     *================================================*/
-    
-    
-    /*================================================
-     * loaded file Components */
-    private File loadedFile;
-    //private boolean loadedFile_isSaved;
-    /* Endo of loaded file Components *
-     *================================================*/
-    
-    public ZeaxanthinGui()
-    {
-        com.zeaxanthin.structure.ZeaTrace.registerZeaTraceElements();
-        createMenuBar();
-        createPopupMenus();
+    /**
+     * Create the default Zeaxanthin GUI. This is the only option.
+     */
+    public ZeaxanthinGui() {
+        createMenus();
         createFileChooser();
-        //createNewGraph();
     }
+    
+    
     
     /**
      * Creates a Menu Bar along the top of the window/JFrame and contains
-     * multiple options.
+     * multiple options. Also creates a popup menu
      */
-    private void createMenuBar()
-    {
-        menubar = new JMenuBar();
+    private void createMenus() {        
+        /*
+         * Create JMenuItems for the JMenuBar and JPopupMenu
+         */
+        //Create the "Exit" item for the JMenuBar
+        this.m_exit = new JMenuItem("Exit", KeyEvent.VK_E);
+             m_exit.setToolTipText("Exit Zeaxanthin");
+             m_exit.setAccelerator(CTRL_E);
+             m_exit.addActionListener(this);
         
-            /*
-             * Menus
-             */
-            this.file = new JMenu("File");
-            file.setMnemonic(KeyEvent.VK_F);
-            this.node = new JMenu("Node");
-            node.setMnemonic(KeyEvent.VK_N);
-            this.update = new JMenu("Update");
-            update.setMnemonic(KeyEvent.VK_U);
-            
-                /*
-                 * Menus Items for "File"
-                 */
-                this.file_exit = new JMenuItem("Exit", KeyEvent.VK_E);
-                file_exit.setToolTipText("Exit Zeaxanthin");
-                file_exit.addActionListener(this);
-                
-                this.file_open = new JMenuItem("Open...", KeyEvent.VK_O);
-                file_open.setToolTipText("Open a File");
-                file_open.addActionListener(this);
-                
-                this.file_new = new JMenuItem("New", KeyEvent.VK_N);
-                file_new.setToolTipText("Create a New Maize Inheritance Model file");
-                file_new.addActionListener(this);
-                
-                this.file_save = new JMenuItem("Save", KeyEvent.VK_S);
-                file_save.setToolTipText("Save File");
-                file_save.addActionListener(this);
-                
-                this.file_saveAs = new JMenuItem("Save As...");
-                //file_saveAs.setMnemonic(KeyEvent.VK_O);
-                file_saveAs.setToolTipText("Save File");
-                file_saveAs.addActionListener(this);
-                
-                
-                /*
-                 * Menu Items for "Node"
-                 */
-                this.node_new = new JMenu("New...");
-                    this.node_new_plant = new JMenuItem("Plant Node", KeyEvent.VK_P);
-                    node_new_plant.setToolTipText("Create a New Plant Node");
-                    node_new_plant.addActionListener(this);
-                    
-                    this.node_new_cob = new JMenuItem("Cob Node", KeyEvent.VK_C);
-                    node_new_cob.setToolTipText("Create a New Cob Node");
-                    node_new_cob.addActionListener(this);
-                    
-                node_new.add(node_new_plant);
-                node_new.add(node_new_cob);
-                
-                this.node_edit = new JMenuItem("Edit...", KeyEvent.VK_E);
-                node_edit.setToolTipText("Edit a Node");
-                node_edit.addActionListener(this);
-                
-                /*
-                 * Menu Items for "Update"
-                 */
-                this.updatePedigree = new JMenuItem("Update Pedigree");
-                updatePedigree.setMnemonic(KeyEvent.VK_A);
-                updatePedigree.setToolTipText("Update all Pedigree Graphics");
-            
-            //Add all the menu items
-            file.add(file_new);
-            file.add(file_open);
-            file.add(file_save);
-            file.add(file_saveAs);
-            file.add(file_exit);
-            
-            node.add(node_new);
-            node.addSeparator();
-            node.add(node_edit);
-            
-            update.add(updatePedigree);
+        //Create the "Open" item for the JMenuBar
+        this.m_open = new JMenuItem("Open...", KeyEvent.VK_O);
+             m_open.setToolTipText("Open a File");
+             m_open.setAccelerator(CTRL_O);
+             m_open.addActionListener(this);
         
-        menubar.add(file);
-        menubar.add(node);
-        menubar.add(update);
+        //Create the "Hardy-Weinburg" item for the JMenuBar
+        this.m_new_HW = new JMenuItem("Hardy-Weinburg", KeyEvent.VK_H);
+             m_new_HW.setToolTipText("Create a New Hardy-Weinburg Simulation");
+             m_new_HW.addActionListener(this);
         
-        setJMenuBar(menubar);
-    }
-    
-    /**
-     * Creates Popup Menu options for the opened window/JFrame.
-     */
-    private void createPopupMenus()
-    {
+        //Create the "Hardy-Weinburg" item for the JPopupMenu
+        this.p_new_HW = new JMenuItem("Hardy-Weinburg", KeyEvent.VK_H);
+             p_new_HW.setToolTipText("Create a New Hardy-Weinburg Simulation");
+             p_new_HW.addActionListener(this);
+        
+        //Create the "Save" item for the JMenuBar
+        this.m_save = new JMenuItem("Save", KeyEvent.VK_S);
+             m_save.setToolTipText("Save File");
+             m_save.setAccelerator(CTRL_S);
+             m_save.addActionListener(this);
+        
+        //Create the "Save As" item for the JMenuBar
+        this.m_saveAs = new JMenuItem("Save As...", KeyEvent.VK_A);
+             m_saveAs.setToolTipText("Save File As");
+             m_saveAs.setAccelerator(CTRL_SHIFT_S);
+             m_saveAs.addActionListener(this);
+        
+        //Create the "Update Pedigree" item for the JMenuBar
+        this.m_updateScreen = new JMenuItem("Update Screen", KeyEvent.VK_U);
+             m_updateScreen.setToolTipText("Update the Screen Graphics");
+             m_updateScreen.addActionListener(this);
+        
+        
+        /*
+         * Create higher level JMenus (Order dependent)
+         */
+        //Create the "New Simulation..." menu for the JMenuBar
+        this.m_new = new JMenu("New Simulation...");
+             m_new.setMnemonic(KeyEvent.VK_N);
+             m_new.add(m_new_HW);
+        
+        //Create the "New Simulation..." menu for the JPopupMenu
+        this.p_new = new JMenu("New Simulation...");
+             p_new.add(p_new_HW);
+        
+        //Create the "File" menu for the JMenuBar
+        this.m_file = new JMenu("File");
+             m_file.setMnemonic(KeyEvent.VK_F);
+             //populate with submenus/menu items
+             m_file.add(m_new);
+             m_file.add(m_open);
+             m_file.add(m_save);
+             m_file.add(m_saveAs);
+             m_file.add(m_exit);
+        
+        //Create the "Update" menu for the JMenuBar
+        this.m_update = new JMenu("Update");
+             m_update.setMnemonic(KeyEvent.VK_U);
+             m_update.add(m_updateScreen);
+        
+        
+        /*
+         * Create highest level JMenuBar and JPopupMenu
+         */
+        this.menubar = new JMenuBar();
+             menubar.add(m_file);
+             menubar.add(m_update);
+        this.setJMenuBar(menubar);
+        
         //initialize the first popup menu
-        this.popup_new = new JPopupMenu();
-        
-            //create a submenu that will contain menu items within itself
-            this.popup_new_node = new JMenu("New...");
-            
-                //create a menu item for "New..."
-                this.popup_new_node_plant = new JMenuItem("Plant Node");
-                popup_new_node_plant.setToolTipText("Create a New Plant Node");
-                popup_new_node_plant.addActionListener(this); //'this' listens for when this menu is selected
-                
-                //create another menu item for "New..."
-                this.popup_new_node_cob = new JMenuItem("Cob Node");
-                popup_new_node_cob.setToolTipText("Create a New Cob Node");
-                popup_new_node_cob.addActionListener(this); //'this' listens for when this menu is selected
-                
-            //add menu items created above to the "New..." popup submenu
-            popup_new_node.add(popup_new_node_plant);
-            popup_new_node.add(popup_new_node_cob);
-            
-        
-        //add submenu(s) and menu items to popup
-        popup_new.add(popup_new_node);
-        
-        
-        this.popup_edit = new JPopupMenu();
-        
-        //create a menu item for popup menu
-        this.popup_edit_node = new JMenuItem("Edit...");
-        popup_edit_node.setToolTipText("Create a New Maize Inheritance Model file");
-        popup_edit_node.addActionListener(this); //'this' listens for when this menu is selected
-        
-        popup_edit.add(popup_edit_node);
+        this.popup = new JPopupMenu();
+             popup.add(p_new);
         
         //'this' listens for when the mouse is right clicked
         addMouseListener(this);
+        
+        //update the screen
+        setVisible(true);
         return;
     }
     
-    private void createFileChooser()
-    {
-        //initialize JFileChooser
-        fileNavGui = new JFileChooser();
-        //we only want files of type *.zxt
-        fileNavGui.setAcceptAllFileFilterUsed(false);
-        
-        //adding file filter(s) for desired file types
-        fileFilters = new FileFilter[1]; //create array...
-        fileFilters[0] = new FileFilterZXT(); //filter for *.zxt
-        
-        for(FileFilter filter : fileFilters) { //add 'em!
-            fileNavGui.addChoosableFileFilter(filter);
-        }
-    }
     
-    private void createNewGraph()
-    {
-        this.graph = new mxGraph();
-        this.graphParent = graph.getDefaultParent();
-        
-        graph.getModel().beginUpdate();
-        
-        try
-        {
-            Object v1 = graph.insertVertex(graphParent, null, "Hello", 20, 20, 80, 30);
-            Object v2 = graph.insertVertex(graphParent, null, "World!", 240, 150, 80, 30);
-            graph.insertEdge(graphParent, null, "Edge", v1, v2);
-        }
-        finally
-        {
-            graph.getModel().endUpdate();
-        }
-
-        this.graphComponent = new mxGraphComponent(graph);
-        getContentPane().add(graphComponent);
-        
-        graphComponent.getGraphControl().addMouseListener(this);
-        
-        //display it!
-        setVisible(true);
-    }
     
     /**
-     * Precondition: 
+     * Create the JFileChooser for selecting and opening files;
+     * create filter options for files to load.
      */
-    private void displayLoadedGraph()
-    {
-        this.graphParent = graph.getDefaultParent();
+    private void createFileChooser() {
+        //initialize JFileChooser
+        fileChooser = new JFileChooser();
         
-        graph.getModel().beginUpdate();
+        //we only want files of types we recognize
+        fileChooser.setAcceptAllFileFilterUsed(false);
         
-        try {
+        //create file filters for desired file types
+        csvFilter = new FileTypeCSV(); //filter for *.csv
         
+        //add file filters for desired file types
+        fileChooser.addChoosableFileFilter(csvFilter);
+    }
+    
+    
+    
+    /**
+     *
+     */
+    private void createTable(int row, int col) {
+        //test to see if table has been previously created
+        if(this.scrollTable != null) {
+            //TODO: probably add a warning "don't overwrite old data"
+            //remove old panel
+            remove(scrollTable);
         }
-        finally {
-            graph.getModel().endUpdate();
-        }
+        //create the table
+        this.table = new ZeaTable(row, col);
+        this.scrollTable = new JScrollPane( this.table );
         
-        this.graphComponent = new mxGraphComponent(graph);
-        getContentPane().add(graphComponent);
+        //add it to the gui
+        add( this.scrollTable );
         
-        graphComponent.getGraphControl().addMouseListener(this);
-        
-        //display it!
+        //update the screen
         setVisible(true);
     }
+/*    private void createTable(Object[][] data, Object[] headers) {
+        //test to see if table has been previously created
+        if(this.table == null && this.scrollTable == null) {
+            //create the table
+            this.table = new ZeaTable(data, headers);
+            this.scrollTable = new JScrollPane( this.table );
+            
+            //add it to the gui
+            add( this.scrollTable );
+            
+            //update the screen
+            setVisible(true);
+        }
+        //table has already been created
+        else{
+            //TODO: probably add a warning "don't overwrite old data"
+            //remove old panel
+            remove(scrollTable);
+            
+            //make new pointers
+            this.table = new ZeaTable(data, headers);
+            this.scrollTable = new JScrollPane( this.table );
+            
+            //add it to the gui
+            add( this.scrollTable );
+            
+            //update the screen
+            setVisible(true);
+        }
+    }*/
+    private void createTable(ZeaTable table) {
+        //determine if there is already a table active
+        if(this.scrollTable != null) {
+            //TODO: probably add a warning "don't overwrite old data"
+            //TODO: If file is not saved
+            int pane = JOptionPane.showOptionDialog
+                           (this,
+                            "You have unsaved changes."+
+                            " Would you like to save these changes?",
+                            "Unsaved Changes",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE,
+                            null,
+                            null,
+                            null);
+                if(pane == JOptionPane.YES_OPTION) {
+                    
+                }
+                else if(pane == JOptionPane.NO_OPTION) {
+                    
+                }
+                else {
+                    
+                }
+            //remove old panel
+            remove(scrollTable);
+        }
+        
+        //add the table
+        this.table = table;
+        
+        //create and add the JScrollPane
+        this.scrollTable = new JScrollPane( this.table );
+             //add the scrollTable to the gui
+             add(this.scrollTable);
+        setVisible(true);
+        return;
+    }
+    
+    
+    
+    /**
+     * Determines if the file has been modified.
+     *
+     * @return 'true' if the file has been modified, 'false' otherwise.
+     */
+    public boolean fileHasBeenModified() {
+        return !loadedFile_isSaved;
+    }
+    
+    
+    
+    /**
+     * Sets the save status variable (loadedFile_isSaved) to isSaved.
+     * Changes the title of the Window to reflect the file which is open
+     * and whether it has been modified. The title will appear in the
+     * format: "Zeaxanthin - <*><Filename>" The <*> means the file has
+     * been modified.
+     */
+    public void setSaveStatus(boolean isSaved) {
+        this.loadedFile_isSaved = isSaved;
+        
+        if(!isSaved) {
+            if(this.loadedFile != null) {
+                if(getTitle().equals(ZEAXANTHIN + " - *" + loadedFile.getName())) {
+                    return;
+                }
+                else {
+                    setTitle(ZEAXANTHIN + " - *" + loadedFile.getName());
+                    return;
+                }
+            }
+            else {
+                if(getTitle().equals(ZEAXANTHIN + " - *" + "[Untitled]")) {
+                    return;
+                }
+                else {
+                    setTitle(ZEAXANTHIN + " - *" + "[Untitled]");
+                    return;
+                }
+            }
+        }
+        else {
+            if(this.loadedFile != null) {
+                if(getTitle().equals(ZEAXANTHIN + " - " + loadedFile.getName())) {
+                    return;
+                }
+                else {
+                    setTitle(ZEAXANTHIN + " - " + loadedFile.getName());
+                    return;
+                }
+            }
+            else {
+                if(getTitle().equals(ZEAXANTHIN + " - " + "[Untitled]")) {
+                    return;
+                }
+                else {
+                    setTitle(ZEAXANTHIN + " - " + "[Untitled]");
+                    return;
+                }
+            }
+        }
+    }
+    
+    
     
     /**
      * Safely closes any objects that need to be closed.
      * Ex: Files
      */
-    private void pre_kill_protocols()
-    {
+    private void pre_kill_protocols() {
         
     }
 
+    
+    
     /**
      * Implementation of the ActionListener interface.
+     * Invoked when an action occurs.
      */
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
         /*
          * Exit the program
          */
-        if(e.getSource() == file_exit) {
+        if(e.getSource() == m_exit) {
             pre_kill_protocols();
             System.exit(0);
         }
         /*
-         * Create a new mxGraph
+         * Create a table
          */
-        if(e.getSource() == file_new) {
-            createNewGraph();
+        if(e.getSource() == m_new_HW || e.getSource() == p_new_HW) {            
+            createTable(7, 7);
+            setSaveStatus(true);
         }
         /*
          * Open a file
          */
-        if(e.getSource() == file_open) {
-            int returnValue = fileNavGui.showOpenDialog(this);
+        if(e.getSource() == m_open) {
+            int returnValue = fileChooser.showOpenDialog(this);
             
             if(returnValue == JFileChooser.APPROVE_OPTION) {
-                loadedFile = fileNavGui.getSelectedFile();
+                this.loadedFile = fileChooser.getSelectedFile();
                 
-                try {
-                    Document document = mxXmlUtils.parseXml( mxUtils.readFile( loadedFile.getAbsolutePath() ) );
-                    mxCodec codec = new mxCodec(document);
-                    this.graph = new mxGraph();
-                    codec.decode(document.getDocumentElement(), graph.getModel());
+                if(ZeaFileIO.getExtension( loadedFile )
+                            .equalsIgnoreCase(FileTypeCSV.CSV_FILE_EXT) /*.csv*/) {
+                    createTable( csvFilter.read(loadedFile));   //call csv filter
+                                                                //and create table
+                    setSaveStatus(true);                        //update save status,
+                                                                //update gui title
                 }
-                catch (Exception ex) {
-                    throw new RuntimeException(ex);
+                else {
+                    return;
                 }
-                
-                displayLoadedGraph();
             }
         }
         /*
-         * Save the mxGraph
+         * Save the data
          */
-        if(e.getSource() == file_save) {
-            int returnValue = fileNavGui.showSaveDialog(this);
+        if(e.getSource() == m_save) {
+            int returnValue = fileChooser.showSaveDialog(this);
             
             File saveFile;
             if(returnValue == JFileChooser.APPROVE_OPTION) {
-            
+                //get the name of the file we're saving to
+                saveFile = fileChooser.getSelectedFile();
+                
                 //may in the future allow for more save options
-                if(fileNavGui.getFileFilter() == fileFilters[0]) {
-                    // The following if-else statement forces the file extension
-                    // to become .zxt
-                    if(FileFilterZXT.getExtension( fileNavGui.getSelectedFile() )
-                                    .equalsIgnoreCase(FileFilterZXT.ZEAXANTHIN_FILE_EXTENSION)) {
-                        // filename is OK as is
-                        saveFile = fileNavGui.getSelectedFile();
-                    }
-                    else {
-                        //append .zxt to name
-                        saveFile = new File(fileNavGui.getSelectedFile().toString()
-                                            + "." + FileFilterZXT.ZEAXANTHIN_FILE_EXTENSION);
-                    }
-                    
-                    //retrieve the path to save to
-                    String savePath = saveFile.getAbsolutePath();
+                if(fileChooser.getFileFilter() == csvFilter) {
+                    //make sure filename has the right ending (.csv)
+                    saveFile = csvFilter.processFilename(saveFile);
+                    csvFilter.write(this.table, saveFile);
+                    return;
                     //Attempt to save the file
-                    try {
-                        mxCodec codec = new mxCodec();
-                        String xml = mxXmlUtils.getXml(codec.encode(graph.getModel()));
-                        mxUtils.writeFile(xml, savePath);
-                    }
-                    catch (Exception ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    
-                    System.out.println("File saved to: " + savePath);
-                    //System.exit(0);
-                    
+                    //System.out.println("File saved to: " + savePath);
                 }
                 
             }
         }
         /*
-         * Save the mxGraph as/save a copy.
+         * Save the data as/save a copy.
          */
-        if(e.getSource() == file_saveAs) {
-            fileNavGui.setDialogType(JFileChooser.SAVE_DIALOG);
-            fileNavGui.setDialogTitle("Save File As...");
-            int returnValue = fileNavGui.showDialog(this, "Save As");
+        if(e.getSource() == m_saveAs) {
+            fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+            fileChooser.setDialogTitle("Save File As...");
+            int returnValue = fileChooser.showDialog(this, "Save As");
             
             if(returnValue == JFileChooser.APPROVE_OPTION) {
-                String saveAsPath = fileNavGui.getSelectedFile().getAbsolutePath();
+                String saveAsPath = fileChooser.getSelectedFile().getAbsolutePath();
                 //TODO save Java object in serializable form.
                 //System.out.println(path);
                 //System.exit(0);
             }
         }
-        if(e.getSource() == node_new_cob ||
-           e.getSource() == popup_new_node_cob) {
-            try {
-                graph.insertVertex(graphParent, null, new Cob(), click_x, click_y, 80, 30);
-            }
-            catch (Exception err) {
-                err.printStackTrace();
-            }
+        /*
+         * Update
+         */
+        if(e.getSource() == m_updateScreen) {
+            this.setVisible(true);
         }
-        if(e.getSource() == node_new_plant ||
-           e.getSource() == popup_new_node_plant) {
-            try {
-                graph.insertVertex(graphParent, null, new Plant(), click_x, click_y, 80, 30);
-            }
-            catch (Exception err) {
-                err.printStackTrace();
-            }
-        }
-        if(e.getSource() == node_edit ||
-           e.getSource() == popup_edit_node) {
-            
-        }
-        if(e.getSource() == updatePedigree) {
-        
-        }
-//         if(e.getSource() == ) {
-//             
-//         }
     }
+    
+    
     
     /**
      * Implementation(s) of the MouseListener interface.
      */
-    public void mouseClicked(MouseEvent e)
-    {
-    }
-    public void mouseEntered(MouseEvent e)
-    {
-    }
-    public void mouseExited(MouseEvent e)
-    {
-    }
-    public void mousePressed(MouseEvent e)
-    {
-    }
-    public void mouseReleased(MouseEvent e)
-    {
+    public void mouseClicked(MouseEvent e) { return; }
+    public void mouseEntered(MouseEvent e) { return; }
+    public void mouseExited(MouseEvent e)  { return; }
+    public void mousePressed(MouseEvent e) { return; }
+    public void mouseReleased(MouseEvent e) {
         if(e.getButton() == MouseEvent.BUTTON3) {
-            Object cellSelected = graphComponent.getCellAt(e.getX(), e.getY());
+            popup.show(e.getComponent(), e.getX(), e.getY());
             
-            if(cellSelected != null) {
-                popup_edit.show(e.getComponent(), e.getX(), e.getY());
-            }
-            else {
-                click_x = e.getX();
-                click_y = e.getY();
-                popup_new.show(e.getComponent(), click_x, click_y);
-            }
         }
     }
 
-    public static void main(String[] args)
-    {
+    
+    
+    /**
+     * 'main' method; begins Zeaxanthin
+     */
+    public static void main(String[] args) {
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -489,7 +557,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                 //gui.pack();
                 gui.setSize(500, 500);
                 gui.setVisible(true);
-                gui.setTitle("Zeaxanthin");
+                gui.setTitle(ZEAXANTHIN);
             }
         });
     }
