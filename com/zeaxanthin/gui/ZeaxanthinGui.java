@@ -34,7 +34,6 @@ import org.w3c.dom.Document;
  * Our libraries
  */
 import com.zeaxanthin.gui.FileTypeCSV;
-import com.zeaxanthin.structure.*;
 
 
 /*
@@ -42,14 +41,17 @@ import com.zeaxanthin.structure.*;
  */
 import com.opencsv.CSVReader;
 
-public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListener
+public class ZeaxanthinGui extends JFrame 
+                           implements ActionListener, MouseListener
 {
-    /*
+    /**
      * The name of the program: Zeaxanthin
      */
     public static final String ZEAXANTHIN = "Zeaxanthin";
     
-    /*
+    
+    
+    /**
      * Zeaxanthin version
      */
     public static final String VERSION = "0.1.1";
@@ -66,17 +68,17 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
      *      Accelerator constants
      */
     
-    /*
+    /**
      * The menubar across the top
      */
     private JMenuBar menubar;
     
-    /*
+    /**
      * The popup menu
      */
     private JPopupMenu popup;
 
-    /*
+    /**
      * Menus for the menubar and popup
      */
     private JMenu m_file,
@@ -84,7 +86,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                   p_new,
                   m_update;
     
-    /*
+    /**
      * Menu Items for the menubar and popup
      */
     private JMenuItem m_exit,
@@ -95,7 +97,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                       m_saveAs,
                       m_updateScreen;
     
-    /*
+    /**
      * Accelerators (shortcuts) for the menus
      */
     private static final KeyStroke
@@ -114,6 +116,8 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
      * End of Menubar and Popup Components *
      ****************************************************************/
     
+    
+    
     /****************************************************************
      * Table Components
      */
@@ -123,6 +127,8 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
      * End of Table Components
      ****************************************************************/
     
+    
+    
     /****************************************************************
      * File Choosing Components
      */
@@ -131,6 +137,7 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     /*
      * End of File Choosing Components
      ****************************************************************/
+    
     
     
     /****************************************************************
@@ -273,6 +280,36 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     
     
     /**
+     * Briefly open an dialog box telling the user that there are unsaved
+     * changes that have been made.
+     */
+    private void openDialog_unsavedChanges() {
+        //TODO: probably add a warning "don't overwrite old data"
+        //TODO: If file is not saved
+        int pane = 
+            JOptionPane.showOptionDialog
+                        (this,
+                         "You have unsaved changes. Would you like to save these changes?",
+                         "Unsaved Changes",
+                         JOptionPane.YES_NO_OPTION,
+                         JOptionPane.WARNING_MESSAGE,
+                         null,
+                         null,
+                         null);
+        if(pane == JOptionPane.YES_OPTION) {
+            saveTable();
+        }
+        else if(pane == JOptionPane.NO_OPTION) {
+            return;
+        }
+        else {
+            return;
+        }
+    }
+    
+    
+    
+    /**
      *
      */
     private void createTable(int row, int col) {
@@ -325,27 +362,8 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
     private void createTable(ZeaTable table) {
         //determine if there is already a table active
         if(this.scrollTable != null) {
-            //TODO: probably add a warning "don't overwrite old data"
-            //TODO: If file is not saved
-            int pane = JOptionPane.showOptionDialog
-                           (this,
-                            "You have unsaved changes."+
-                            " Would you like to save these changes?",
-                            "Unsaved Changes",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.WARNING_MESSAGE,
-                            null,
-                            null,
-                            null);
-                if(pane == JOptionPane.YES_OPTION) {
-                    
-                }
-                else if(pane == JOptionPane.NO_OPTION) {
-                    
-                }
-                else {
-                    
-                }
+            openDialog_unsavedChanges();
+            
             //remove old panel
             remove(scrollTable);
         }
@@ -355,10 +373,49 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
         
         //create and add the JScrollPane
         this.scrollTable = new JScrollPane( this.table );
-             //add the scrollTable to the gui
-             add(this.scrollTable);
+        
+        //add the scrollTable to the gui
+        add(this.scrollTable);
+        
+        //update screen
         setVisible(true);
         return;
+    }
+    
+    
+    
+    /**
+     * Save the table opened up to a file.
+     */
+    public void saveTable() {
+        if(this.loadedFile != null) {
+            if(ZeaFileIO.getExtension(loadedFile)
+                        .equalsIgnoreCase(FileTypeCSV.CSV_FILE_EXT) /*.csv*/) {
+                csvFilter.write(this.table, this.loadedFile);
+                this.setSaveStatus(true);
+            }
+        }
+        else if(this.table != null){
+            int returnValue = fileChooser.showSaveDialog(this);
+            
+            if(returnValue == JFileChooser.APPROVE_OPTION) {
+                //get the name of the file we're saving to
+                this.loadedFile = fileChooser.getSelectedFile();
+                
+
+                if(fileChooser.getFileFilter() == csvFilter /*.csv*/) {
+                    //make sure filename has the right ending (.csv)
+                    this.loadedFile = csvFilter.processFilename(this.loadedFile);
+                    csvFilter.write(this.table, this.loadedFile);
+                    this.setSaveStatus(true);
+                    return;
+                }
+                
+            }
+        }
+        else {
+            return;
+        }
     }
     
     
@@ -447,9 +504,16 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
          * Exit the program
          */
         if(e.getSource() == m_exit) {
+            //if the loaded file has not been saved
+            if(!loadedFile_isSaved) {
+                openDialog_unsavedChanges();
+            }
             pre_kill_protocols();
             System.exit(0);
         }
+        
+        
+        
         /*
          * Create a table
          */
@@ -457,6 +521,9 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             createTable(7, 7);
             setSaveStatus(true);
         }
+        
+        
+        
         /*
          * Open a file
          */
@@ -478,29 +545,18 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
                 }
             }
         }
+        
+        
+        
         /*
          * Save the data
          */
         if(e.getSource() == m_save) {
-            int returnValue = fileChooser.showSaveDialog(this);
-            
-            File saveFile;
-            if(returnValue == JFileChooser.APPROVE_OPTION) {
-                //get the name of the file we're saving to
-                saveFile = fileChooser.getSelectedFile();
-                
-                //may in the future allow for more save options
-                if(fileChooser.getFileFilter() == csvFilter) {
-                    //make sure filename has the right ending (.csv)
-                    saveFile = csvFilter.processFilename(saveFile);
-                    csvFilter.write(this.table, saveFile);
-                    return;
-                    //Attempt to save the file
-                    //System.out.println("File saved to: " + savePath);
-                }
-                
-            }
+            saveTable();
         }
+        
+        
+        
         /*
          * Save the data as/save a copy.
          */
@@ -510,12 +566,24 @@ public class ZeaxanthinGui extends JFrame implements ActionListener, MouseListen
             int returnValue = fileChooser.showDialog(this, "Save As");
             
             if(returnValue == JFileChooser.APPROVE_OPTION) {
-                String saveAsPath = fileChooser.getSelectedFile().getAbsolutePath();
-                //TODO save Java object in serializable form.
-                //System.out.println(path);
-                //System.exit(0);
+                this.loadedFile = fileChooser.getSelectedFile();
+                
+                if(fileChooser.getFileFilter() == csvFilter /*.csv*/) {
+                    //make sure filename has the right ending (.csv)
+                    this.loadedFile = csvFilter.processFilename(this.loadedFile);
+                    
+                    //write the file
+                    csvFilter.write(this.table, this.loadedFile);
+                    
+                    //update save status and window header
+                    this.setSaveStatus(true);
+                    return;
+                }
             }
         }
+        
+        
+        
         /*
          * Update
          */

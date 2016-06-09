@@ -83,10 +83,15 @@ public class FileTypeCSV extends FileFilter implements ZeaFileIO
         Object[][]             data = null;
         
         try {
+            //create a CSVReader
             reader = new CSVReader( new FileReader(filename) );
+            
             try {
                 csvlist = new Vector<String[]>( reader.readAll() );
                 
+                if(csvlist == null || csvlist.size() <= 0) {
+                    return new ZeaTable();
+                }
                 header = csvlist.get(0);
                 csvlist.remove(0);
                 classes = csvlist.get(0);
@@ -100,7 +105,7 @@ public class FileTypeCSV extends FileFilter implements ZeaFileIO
             }
         }
         catch (Exception ex) {
-            System.out.println("Error in CSVReader: could not construct object");
+            System.out.println("Error in CSVReader: could not construct CSVReader object");
             System.out.println("    " + ex.getMessage());
             System.out.println("    " + ex.getStackTrace());
             return null;
@@ -124,10 +129,9 @@ public class FileTypeCSV extends FileFilter implements ZeaFileIO
                                   System.identityHashCode(classes),
                                   System.identityHashCode(data));
             }
-            finally {
-                return new ZeaTable(data, header, classes);
-            }
         }
+        
+        return new ZeaTable(data, header, classes);
     }
     
     

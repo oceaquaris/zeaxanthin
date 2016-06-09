@@ -21,7 +21,7 @@ import javax.swing.table.TableRowSorter;
 
 public class ZeaTable extends JTable implements ActionListener, MouseListener
 {
-    /*
+    /**
      * A custom TableModel. Make this instance data to keep track of
      * where the pointer is.
      */
@@ -38,8 +38,11 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
      * End of Popup menus
      ****************************************************************/
     
-    /*
+    /**
      * Coordinates of the selected cell.
+     *
+     * coord_row: Row coordinates
+     * coord_col: Column coordinates
      */
     private int coord_row,
                 coord_col;
@@ -47,7 +50,19 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
     
     
     /*
+     **********************************************************************************************
+     **********************************************************************************************
+     **********************************************************************************************
+     */
+    
+    
+    
+    /*
      * Constructors
+     */
+    /**
+     * Constructs a default JTable that is initialized with a default data model,
+     * a default column model, and a default selection model.
      */
     public ZeaTable() {
         //call constructor that uses a ZeaTableModel
@@ -70,7 +85,7 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
         this.zeaTableModel = dm;        //save the object pointer
         
                                         //create a row sorter
-        this.setRowSorter( new TableRowSorter(dm) );
+        this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
         
         createPopupMenus();             //create popup
         
@@ -82,7 +97,7 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
         this.zeaTableModel = dm;        //save the object pointer
 
                                         //create a row sorter
-        this.setRowSorter( new TableRowSorter(dm) );
+        this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
         
         createPopupMenus();             //create popup
         
@@ -94,7 +109,7 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
         this.zeaTableModel = dm;        //save the object pointer
         
                                         //create a row sorter
-        this.setRowSorter( new TableRowSorter(dm) );
+        this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
         
         createPopupMenus();             //create popup
         
@@ -109,15 +124,26 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
     
     
     /*
+     **********************************************************************************************
+     **********************************************************************************************
+     **********************************************************************************************
+     */
+    
+    
+    
+    /*
      * MouseListener implementations
      */
     public void mouseClicked(MouseEvent e) {
+        //this.coord_col = getSelectedRow();
+        //this.coord_row = getSelectedColumn();
+    
         //if right clicked
         if(e.getButton() == MouseEvent.BUTTON3) {
-            clearSelection();             //clear selected cells
-            Point p = e.getPoint();       //get where clicked
-            coord_row = rowAtPoint(p);    //get table row where clicked
-            coord_col = columnAtPoint(p); //get table column where clicked
+            clearSelection();                  //clear selected cells
+            Point p = e.getPoint();            //get where clicked
+            this.coord_row = rowAtPoint(p);    //get table row where clicked
+            this.coord_col = columnAtPoint(p); //get table column where clicked
             
             //select single cell where right clicked
             addRowSelectionInterval(coord_row, coord_row);
@@ -139,10 +165,10 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
      */
     public void actionPerformed(ActionEvent e) {
         if(e.getSource() == popup_insertRow_up) {
-            
+            this.insertEmptyRowAbove(coord_row);
         }
         if(e.getSource() == popup_insertRow_down) {
-            
+            this.insertEmptyRowBelow(coord_row);
         }
         if(e.getSource() == popup_insertCol_L) {
             
@@ -167,29 +193,43 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
     public void setValueAt(Object aValue, int row, int column) {
         super.setValueAt(aValue, row, column);
 
-        //Go up 6 Layers!!!
-        Container parent = this.getParent()
-                               .getParent()
-                               .getParent()
-                               .getParent()
-                               .getParent()
-                               .getParent();
-
-        //alternative to the above (if the position heritage of the ZeaTable
-        //is not known)
-        /*Component parent = this;
-        while( !(parent instanceof JFrame) && parent instanceof Component) {
-            parent = parent.getParent();
-        }*/
-        if(parent instanceof ZeaxanthinGui) {
-            ((ZeaxanthinGui)parent).setSaveStatus(false);
-        }
+        setGuiParentStatus(false);
         return;
     }
     
     
     
-    /*
+    /**
+     * Insert a new empty row above a given row.
+     */
+    public void insertEmptyRowAbove(int row) {
+        //let the ZeaTableModel class handle this.
+        zeaTableModel.insertEmptyRowAbove(row);
+
+        //table has been modified; gui needs to know this.
+        setGuiParentStatus(false);
+
+        return;
+    }
+    
+    
+    
+    /**
+     * Insert a new empty row below a given row.
+     */
+    public void insertEmptyRowBelow(int row) {
+        //let the ZeaTableModel class handle this.
+        zeaTableModel.insertEmptyRowBelow(row);
+        
+        //table has been modified; gui needs to know this.
+        setGuiParentStatus(false);
+        
+        return;
+    }
+    
+    
+    
+    /**
      * Retrieve our ZeaTableModel pointer
      */
     public ZeaTableModel getZeaTableModel() { return this.zeaTableModel; }
@@ -255,5 +295,27 @@ public class ZeaTable extends JTable implements ActionListener, MouseListener
         
         
         return;
+    }
+
+    
+    
+    private void setGuiParentStatus(boolean isSaved) {
+        //Go up 6 Layers!!!
+        Container parent = this.getParent()
+                               .getParent()
+                               .getParent()
+                               .getParent()
+                               .getParent()
+                               .getParent();
+
+        //alternative to the above (if the position heritage of the ZeaTable
+        //is not known)
+        /*Component parent = this;
+        while( !(parent instanceof JFrame) && parent instanceof Component) {
+            parent = parent.getParent();
+        }*/
+        if(parent instanceof ZeaxanthinGui) {
+            ((ZeaxanthinGui)parent).setSaveStatus(isSaved);
+        }
     }
 }
