@@ -8,16 +8,36 @@ import javax.swing.JTable;
  */
 public interface ZeaFileIO
 {
-    public static String getExtension(File pathname)
-    {
-        String ext = new String("");
-        String s = pathname.getName();
-        int i = s.lastIndexOf('.');
+    /**
+     * Retreive the extension of a file (in lower case text). Extension is defined
+     * as any text after the last '.' in a filename.
+     * If there is no extension given, this function will return the last
+     */
+    public static String getExtension(File pathname) {
+        //retreive the name of the file (no pathname)
+        String name = pathname.getName();
         
-        if (i > 0 && i < s.length() - 1) {
-            ext = s.substring( i+1 ).toLowerCase();
+        //retreive the last index of '.'
+        int index = name.lastIndexOf('.');
+        
+        
+        
+        //if index > 0, there is a '.' in the String
+        if(index > 0) {
+        
+            //if index > one less than the last index, there is a '.' at the end of the file.
+            if(index > name.length()-1) {
+            
+                //return an empty string; there is no file extension.
+                return "";
+            }
+            
+            //return the file extension in toLowerCase
+            return name.substring(index+1).toLowerCase();
         }
-        return ext;
+        
+        //there is no extension, so return the filename.
+        return name;
     }
     
     

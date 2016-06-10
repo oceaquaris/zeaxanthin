@@ -3,6 +3,8 @@ package com.zeaxanthin.gui;
 /*
  * Standard Java Libraries
  */
+import java.lang.Class;
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
@@ -165,20 +167,23 @@ public class ZeaTableModel extends DefaultTableModel {
             return null;
         }
         if(col < columnClassIdentifiers.size()) {
-            String s = columnClassIdentifiers.get(col);
-            if(s.equalsIgnoreCase("Integer") || s.equalsIgnoreCase("int")) {
+            String s = this.columnClassIdentifiers.get(col);
+            if( s.equalsIgnoreCase("Integer") ||
+                s.equalsIgnoreCase("int")       ) {
                 return Integer.class;
             }
-            if(s.equalsIgnoreCase("Double")) {
+            if( s.equalsIgnoreCase("Double")    ) {
                 return Double.class;
             }
-            if(s.equalsIgnoreCase("Boolean") || s.equalsIgnoreCase("bool")) {
+            if( s.equalsIgnoreCase("Boolean") ||
+                s.equalsIgnoreCase("bool")      ) {
                 return Boolean.class;
             }
-            if(s.equalsIgnoreCase("Long")) {
+            if( s.equalsIgnoreCase("Long")      ) {
                 return Long.class;
             }
-            if(s.equalsIgnoreCase("Character") || s.equalsIgnoreCase("char")) {
+            if( s.equalsIgnoreCase("Character") ||
+                s.equalsIgnoreCase("char")      ) {
                 return Character.class;
             }
         }
@@ -238,11 +243,26 @@ public class ZeaTableModel extends DefaultTableModel {
         /*
          * This section converts 'data' to a Vector<Vector<Object>>. All objects in
          * 'data' will be forced to convert to Objects (but will retain their values).
+         * If the 'data' comes from the CSVReader, the data will be all String objects.
          */
-        Vector<Vector<Object>> dataVector = new Vector<Vector<Object>>();   //create the Vector<Vector>
-        for(int i = 0; i < data.length; i++) {  //Add Vector<Object> objects
+        // Create the Vector<Vector>
+        Vector<Vector<Object>> dataVector = new Vector<Vector<Object>>();
+        
+        /* Convert an array to a List and construct the List as a Vector<Object>.
+         * Add Vector<Object> objects to Vector<Vector<Object>> */
+        for(int i = 0; i < data.length; i++) {
             dataVector.add( new Vector<Object>( Arrays.asList(data[i]) ) );
         }
+        
+        
+        /*
+         * Temporary variables used for the nested loops below.
+         */
+        Class<?> columnClass             = null;
+        Constructor<?> stringConstructor = null;
+        Object element                   = null;
+        String elementToString           = null;
+        
         
         /* 
          * This section detects if an Object within 'dataVector' is recognized as one
@@ -255,41 +275,65 @@ public class ZeaTableModel extends DefaultTableModel {
          * a String, Double, Boolean, or Integer.
          */
         for(int i = 0; i < columnClasses.length; i++) {
-            Class colClass = getColumnClassClass(columnClasses, i);
-            if(colClass.equals(Integer.class)) {
-                for(int j = 0; j < dataVector.size(); j++) {
-                    dataVector.get(j)
-                              .setElementAt( new Integer(dataVector.get(j)
-                                                                   .get(i)
-                                                                   .toString()),
-                                             i); 
+            columnClass = getColumnClassClass(columnClasses, i);
+            
+            
+            // Retrieve the String constructor of Integer, String, Double, Boolean, Long, etc. classes.
+            try {
+                stringConstructor = columnClass.getConstructor(String.class);
+            }
+            catch(Exception ex) {
+                System.out.println("Error in com.zeaxanthin.gui.ZeaTableModel.processData_convertDataToVector\n" +
+                                   "(Object[][],Object[]): constructor: " + columnClass.getSimpleName() +
+                                   "(" + String.class.getSimpleName() + ") does not exist." + "\n" +
+                                   "    " + ex.getClass().getSimpleName() + "\n" +
+                                   "    " + ex.getMessage() + "\n" +
+                                   "    " + ex.getStackTrace() + "\n" +
+                                   "Continuing using the default String constructor...");
+                
+                // Retrieve the String(String) constructor
+                try {
+                    stringConstructor = String.class.getConstructor(String.class);
+                }
+                catch(Exception e) {
+                    System.out.println("Error in retrieving String(String) constuctor.\n" +
+                                       "This should not have happened. Exiting by returning null...\n" +
+                                       "    " + ex.getClass().getSimpleName() + "\n" +
+                                       "    " + ex.getMessage() + "\n" +
+                                       "    " + ex.getStackTrace() );
+                    
+                    return null;
                 }
             }
-            else if(colClass.equals(Double.class)) {
-                for(int j = 0; j < dataVector.size(); j++) {
-                    dataVector.get(j)
-                              .setElementAt( new Double(dataVector.get(j)
-                                                                  .get(i)
-                                                                  .toString()),
-                                             i);
+            
+            
+            for(int j = 0; j < dataVector.size(); j++) {
+                element = dataVector.get(j).get(i);     // Retrieve the current element
+                elementToString = element.toString();     // Retrieve the element's toString
+                
+                if(element != null) {
+                    if( elementToString.equals("") ) {
+                        dataVector.get(j).setElementAt(null, i);
+                    }
+                    else {
+                        try {
+                            dataVector.get(j)
+                                      .setElementAt( stringConstructor.newInstance( elementToString ), i);
+                        }
+                        catch(Exception ex) {
+                            System.out.println("Error in creating a newInstance of " + stringConstructor.getDeclaringClass()
+                                                                                                        .getSimpleName() + "\n" +
+                                               "    " + ex.getClass().getSimpleName() + "\n" +
+                                               "    " + ex.getMessage() + "\n" +
+                                               "    " + ex.getStackTrace() + "\n" +
+                                               "Inserting null element into Vector...");
+                            
+                            dataVector.get(j).setElementAt(null, i);
+                        }
+                    }
                 }
-            }
-            else if(colClass.equals(Boolean.class)) {
-                for(int j = 0; j < dataVector.size(); j++) {
-                    dataVector.get(j)
-                              .setElementAt( new Boolean(dataVector.get(j)
-                                                                   .get(i)
-                                                                   .toString()),
-                                             i); 
-                }
-            }
-            else /*(colClass.equals(String.class))*/ {
-                for(int j = 0; j < dataVector.size(); j++) {
-                    dataVector.get(j)
-                              .setElementAt( new String(dataVector.get(j)
-                                                                  .get(i)
-                                                                  .toString()),
-                                             i); 
+                else {
+                    dataVector.get(j).setElementAt(null, i);
                 }
             }
         }
@@ -297,7 +341,7 @@ public class ZeaTableModel extends DefaultTableModel {
         return dataVector;
     }
     
-    private static Vector convertColumnNamesToVector(Object[] columnNames) {
+    private static Vector<Object> convertColumnNamesToVector(Object[] columnNames) {
         return new Vector<Object>( Arrays.asList(columnNames) );
     }
     
