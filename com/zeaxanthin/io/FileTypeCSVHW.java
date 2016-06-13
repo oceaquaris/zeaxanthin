@@ -1,19 +1,44 @@
-package com.zeaxanthin.gui;
+/**
+ * FileTypeCSVHW
+ */
 
+ 
+package com.zeaxanthin.io;
+
+/*
+ * Standard Java Libraries
+ */
 import java.io.File;
 
-/**
- * Write a description of class FileTypeCSVHW here.
- * 
- * @author (your name) 
- * @version (a version number or a date)
+/*
+ * Zeaxanthin Libraries
  */
+import com.zeaxanthin.io.FileTypeCSV;
+
+
 public class FileTypeCSVHW extends FileTypeCSV
 {
+    /**
+     * The file extension for which this FileFilter responds to.
+     * The file extension for which this object can read/write.
+     */
     public static final String CSVHW_FILE_EXT = "csvhw";
     
     
     
+    /*
+     **********************************************************************************************
+     **********************************************************************************************
+     **********************************************************************************************
+     */
+    
+    
+    
+    /**
+     * Implementation of the javax.swing.filechooser.FileFilter abstract class.
+     *
+     * Whether the given file is accepted by this filter.
+     */
     @Override
     public boolean accept(File pathname) {
         if(pathname.isDirectory()) {
@@ -30,6 +55,11 @@ public class FileTypeCSVHW extends FileTypeCSV
     
     
     
+    /**
+     * Implementation of the javax.swing.filechooser.FileFilter abstract class.
+     *
+     * The description of this filter.
+     */
     @Override
     public String getDescription() {
         return "CSV Hardy-Weinburg files (*."+CSVHW_FILE_EXT+")";

@@ -1,8 +1,20 @@
-package com.zeaxanthin.gui;
+/**
+ * ZeaFileIO
+ */
 
+package com.zeaxanthin.io;
+
+/*
+ * Standard Java Libraries
+ */
 import java.io.File;
 import javax.swing.JTable;
 
+/*
+ * Zeaxanthin Libraries
+ */
+import com.zeaxanthin.gui.ZeaTable;
+ 
 /**
  * Interface to deal with extension names in custom made FileFilters
  */
@@ -42,6 +54,14 @@ public interface ZeaFileIO
     
     
     
+    /*
+     **********************************************************************************************
+     **********************************************************************************************
+     **********************************************************************************************
+     */
+    
+    
+    
     /**
      * Process the proposed filename that the user inputs.
      * If the filename does not have .<ext> at the end, append
@@ -52,9 +72,7 @@ public interface ZeaFileIO
     
     
     /**
-     * Read the extension and return an array of objects.
-     * Contained within the array (in this order):
-     *      JTable
+     * Read the extension and return an ZeaTable to be displayed.
      */
     public abstract ZeaTable read(File filename);
     

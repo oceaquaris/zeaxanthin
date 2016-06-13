@@ -3,12 +3,15 @@ package com.zeaxanthin.gui;
 /*
  * Standard Java Libraries
  */
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.lang.Class;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
 
+@SuppressWarnings("serial")     // this class is not intended to be serialized.
 public class ZeaTableModel extends DefaultTableModel {
     /**
      * Column class identifiers. Ex:"String","Integer","Double","Boolean"
@@ -91,7 +94,7 @@ public class ZeaTableModel extends DefaultTableModel {
      * taken from the columnNames vector. Column classes are specified by the
      * second Vector of Strings. Empty rows (specified by 'rowCount') are inserted.
      */
-    public ZeaTableModel(Vector columnNames, Vector<String> columnClasses, int rowCount) {
+    public ZeaTableModel(Vector<?> columnNames, Vector<String> columnClasses, int rowCount) {
         super(columnNames, rowCount);//use super-class constructor
         this.columnClassIdentifiers = columnClasses;
     }
@@ -102,7 +105,7 @@ public class ZeaTableModel extends DefaultTableModel {
      * Constructs a ZeaTableModel and initializes the table by passing data and
      * columnNames to the setDataVector method. Column class specifiers are added.
      */
-    public ZeaTableModel(Vector data, Vector columnNames, Vector<String> columnClasses) {
+    public ZeaTableModel(Vector<?> data, Vector<?> columnNames, Vector<String> columnClasses) {
         super(data, columnNames);//use super-class constructor
         this.columnClassIdentifiers = columnClasses;
     }
@@ -162,7 +165,7 @@ public class ZeaTableModel extends DefaultTableModel {
      * Return the specified class of a column.
      */
     @Override
-    public Class getColumnClass(int col) {
+    public Class<?> getColumnClass(int col) {
         if(columnClassIdentifiers == null) {
             return null;
         }
@@ -216,7 +219,7 @@ public class ZeaTableModel extends DefaultTableModel {
     /**
      * Determines the object 
      */
-    private static Class getColumnClassClass(Object[] columnClasses, int col) {
+    private static Class<?> getColumnClassClass(Object[] columnClasses, int col) {
         if(col >= columnClasses.length) {
             return null;
         }
@@ -351,5 +354,15 @@ public class ZeaTableModel extends DefaultTableModel {
             columnClassesVector.add(columnClasses[i].toString());
         }
         return columnClassesVector;
+    }
+    
+    
+    
+    /**
+     * In the event that someone tries to serialize this object, throw an exception.
+     */
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        throw new IOException("The class: " + this.getClass().getSimpleName() +
+                              " is NOT serializable.");
     }
 }

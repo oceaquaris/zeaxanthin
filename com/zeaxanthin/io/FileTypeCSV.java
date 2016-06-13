@@ -1,6 +1,8 @@
-package com.zeaxanthin.gui;
+/**
+ * FileTypeCSV
+ */
 
-
+package com.zeaxanthin.io;
 
 /*
  * Standard Java Libraries
@@ -29,9 +31,10 @@ import com.opencsv.CSVWriter;
 
 
 /*
- * zeaxanthin libraries
+ * Zeaxanthin Libraries
  */
-import com.zeaxanthin.gui.ZeaFileIO;
+import com.zeaxanthin.gui.ZeaTable;
+import com.zeaxanthin.io.ZeaFileIO;
 
 
 

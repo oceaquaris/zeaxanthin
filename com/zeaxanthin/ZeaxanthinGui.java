@@ -1,7 +1,14 @@
-package com.zeaxanthin.gui;
+/**
+ * Write a description of class ZeaxanthinGui here.
+ * 
+ * @author (your name) 
+ * @version (a version number or a date)
+ */
+
+package com.zeaxanthin;
 
 /*
- * Standard Java libraries
+ * Standard Java Libraries
  */
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -14,6 +21,8 @@ import java.awt.event.MouseListener;
 import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.lang.Exception;
 import java.lang.RuntimeException;
 import java.util.List;
@@ -31,19 +40,27 @@ import javax.swing.KeyStroke;
 import org.w3c.dom.Document;
 
 /*
- * Our libraries
- */
-import com.zeaxanthin.gui.FileTypeCSV;
-
-
-/*
- * opencsv parser libraries
+ * Opencsv Parser Libraries
  */
 import com.opencsv.CSVReader;
 
+/*
+ * Zeaxanthin Libraries
+ */
+import com.zeaxanthin.gui.ZeaTable;
+import com.zeaxanthin.io.FileTypeCSV;
+import com.zeaxanthin.io.FileTypeCSVHW;
+import com.zeaxanthin.io.ZeaFileIO;
+
+
+
+
+@SuppressWarnings("serial")     // this class is not intended to be serialized.
 public class ZeaxanthinGui extends JFrame 
                            implements ActionListener, MouseListener
 {
+    @SuppressWarnings("serial")     // this class is not intended to be serialized.
+
     /**
      * The name of the program: Zeaxanthin
      */
@@ -628,5 +645,15 @@ public class ZeaxanthinGui extends JFrame
                 gui.setTitle(ZEAXANTHIN);
             }
         });
+    }
+    
+    
+    
+    /**
+     * In the event that someone tries to serialize this object, throw an exception.
+     */
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        throw new IOException("The class: " + this.getClass().getSimpleName() +
+                              " is NOT serializable.");
     }
 }

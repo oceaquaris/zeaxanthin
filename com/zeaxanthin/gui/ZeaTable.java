@@ -1,5 +1,10 @@
 package com.zeaxanthin.gui;
 
+
+/*
+ * Standard Java Libraries &
+ * Standard Swing Libraries
+ */
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
@@ -7,6 +12,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Point;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -19,12 +26,22 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
+
+/*
+ * Zeaxanthin Libraries
+ */
+import com.zeaxanthin.gui.ZeaTableModel;
+import com.zeaxanthin.ZeaxanthinGui;
+
+
+// This class is not intended to be serialized.
+@SuppressWarnings("serial")
 public class ZeaTable extends JTable
                       implements ActionListener, MouseListener
 {
     /**
-     * A custom TableModel. Make this instance data to keep track of
-     * where the pointer is.
+     * A custom TableModel. This is instance data to make it easier to keep
+     * track of the TableModel.
      */
     protected ZeaTableModel zeaTableModel;
     
@@ -32,9 +49,9 @@ public class ZeaTable extends JTable
      * Popup menus
      */
     private JPopupMenu popup;
-    private JMenu popup_insertRow, popup_insertCol;
-    private JMenuItem popup_insertRow_up, popup_insertRow_down,
-                      popup_insertCol_L, popup_insertCol_R;
+    private JMenu popup_insertRow; //popup_insertCol;
+    private JMenuItem popup_insertRow_up, popup_insertRow_down;
+                      //popup_insertCol_L, popup_insertCol_R;
     /*
      * End of Popup menus
      ****************************************************************/
@@ -163,7 +180,7 @@ public class ZeaTable extends JTable
      * should contain the values for that row. A Vector of Strings is also needed
      * to specify the column class in the ZeaTable/ZeaTableModel.
      */
-    public ZeaTable(Vector rowData, Vector columnNames, Vector<String> columnClass) {
+    public ZeaTable(Vector<?> rowData, Vector<?> columnNames, Vector<String> columnClass) {
         //call constructor that uses a ZeaTableModel
         //this constructor will handle everything
         this(new ZeaTableModel(rowData, columnNames, columnClass));
@@ -176,6 +193,104 @@ public class ZeaTable extends JTable
      **********************************************************************************************
      **********************************************************************************************
      */
+    
+    
+    
+    /**
+     * ActionListener implementation.
+     *
+     * Invoked when an action occurs.
+     * AKA: Invoked when JMenuItems in the popup are clicked on.
+     */
+    public void actionPerformed(ActionEvent e) {
+        if(e.getSource() == popup_insertRow_up) {
+            this.insertEmptyRowAbove(coord_row);
+        }
+        if(e.getSource() == popup_insertRow_down) {
+            this.insertEmptyRowBelow(coord_row);
+        }
+        /*
+        if(e.getSource() == popup_insertCol_L) {
+            
+        }
+        if(e.getSource() == popup_insertCol_R) {
+            
+        }
+        */
+    }
+    
+    
+    
+    /**
+     * Search for a column titled 'title'. This must be an exact match.
+     */
+    public int findColumn(String title) {
+        int numColumns = getColumnCount();
+        if(numColumns > 0) {
+            for(int i = 0; i < numColumns; i++) {
+                if( getColumnName(i).equals(title) ) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+    
+    
+    
+    /**
+     * Search for a column titled 'title'. This must be an exact match.
+     */
+    public int findColumnIgnoreCase(String title) {
+        int numColumns = getColumnCount();
+        if(numColumns > 0) {
+            for(int i = 0; i < numColumns; i++) {
+                if( getColumnName(i).equalsIgnoreCase(title) ) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+    
+    
+    
+    /**
+     * Retrieve our ZeaTableModel pointer
+     */
+    public ZeaTableModel getZeaTableModel() {
+        return this.zeaTableModel;
+    }
+    
+    
+    
+    /**
+     * Insert a new empty row above a given row.
+     */
+    public void insertEmptyRowAbove(int row) {
+        //let the ZeaTableModel class handle this.
+        zeaTableModel.insertEmptyRowAbove(row);
+
+        //table has been modified; gui needs to know this.
+        setGuiParentStatus(false);
+
+        return;
+    }
+    
+    
+    
+    /**
+     * Insert a new empty row below a given row.
+     */
+    public void insertEmptyRowBelow(int row) {
+        //let the ZeaTableModel class handle this.
+        zeaTableModel.insertEmptyRowBelow(row);
+        
+        //table has been modified; gui needs to know this.
+        setGuiParentStatus(false);
+        
+        return;
+    }
     
     
     
@@ -248,29 +363,6 @@ public class ZeaTable extends JTable
     
     
     /**
-     * ActionListener implementation.
-     *
-     * Invoked when an action occurs.
-     * AKA: Invoked when JMenuItems in the popup are clicked on.
-     */
-    public void actionPerformed(ActionEvent e) {
-        if(e.getSource() == popup_insertRow_up) {
-            this.insertEmptyRowAbove(coord_row);
-        }
-        if(e.getSource() == popup_insertRow_down) {
-            this.insertEmptyRowBelow(coord_row);
-        }
-        if(e.getSource() == popup_insertCol_L) {
-            
-        }
-        if(e.getSource() == popup_insertCol_R) {
-            
-        }
-    }
-    
-    
-    
-    /**
      * Moves the column 'column' to the position currently occupied by the column
      * 'targetColumn' in the view. The old column at 'targetColumn' is shifted left
      * or right to make room. The column class identifiers are also shifted left
@@ -301,74 +393,11 @@ public class ZeaTable extends JTable
     
     
     
-    /**
-     * Search for a column titled 'title'. This must be an exact match.
+    /*
+     **********************************************************************************************
+     **********************************************************************************************
+     **********************************************************************************************
      */
-    public int findColumn(String title) {
-        int numColumns = getColumnCount();
-        if(numColumns > 0) {
-            for(int i = 0; i < numColumns; i++) {
-                if( getColumnName(i).equals(title) ) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-    
-    
-    
-    /**
-     * Search for a column titled 'title'. This must be an exact match.
-     */
-    public int findColumnIgnoreCase(String title) {
-        int numColumns = getColumnCount();
-        if(numColumns > 0) {
-            for(int i = 0; i < numColumns; i++) {
-                if( getColumnName(i).equalsIgnoreCase(title) ) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-    
-    
-    
-    /**
-     * Insert a new empty row above a given row.
-     */
-    public void insertEmptyRowAbove(int row) {
-        //let the ZeaTableModel class handle this.
-        zeaTableModel.insertEmptyRowAbove(row);
-
-        //table has been modified; gui needs to know this.
-        setGuiParentStatus(false);
-
-        return;
-    }
-    
-    
-    
-    /**
-     * Insert a new empty row below a given row.
-     */
-    public void insertEmptyRowBelow(int row) {
-        //let the ZeaTableModel class handle this.
-        zeaTableModel.insertEmptyRowBelow(row);
-        
-        //table has been modified; gui needs to know this.
-        setGuiParentStatus(false);
-        
-        return;
-    }
-    
-    
-    
-    /**
-     * Retrieve our ZeaTableModel pointer
-     */
-    public ZeaTableModel getZeaTableModel() { return this.zeaTableModel; }
     
     
     
@@ -391,6 +420,7 @@ public class ZeaTable extends JTable
              popup_insertRow_down.setToolTipText("Create a New Cob Node");
              popup_insertRow_down.addActionListener(this); //'this' listens for when this menu is selected
         
+        /*
         //create a menu item for "New..."
         this.popup_insertCol_L = new JMenuItem("Left Current Column");
              popup_insertCol_L.setToolTipText("Insert a New Column Left of Current Column");
@@ -400,6 +430,7 @@ public class ZeaTable extends JTable
         this.popup_insertCol_R = new JMenuItem("Right Current Column");
              popup_insertCol_R.setToolTipText("Insert a New Column Right of Current Column");
              popup_insertCol_R.addActionListener(this); //'this' listens for when this menu is selected
+        */
         
         /*
          * Create JMenus
@@ -409,12 +440,14 @@ public class ZeaTable extends JTable
              //Add options to the "Insert Row..." menu
              popup_insertRow.add(popup_insertRow_up);
              popup_insertRow.add(popup_insertRow_down);
-            
+        
+        /*
         //create another submenu that will contain menu items within itself
         this.popup_insertCol = new JMenu("Insert Column...");
              //add menu items created above to the "New..." popup submenu
              popup_insertCol.add(popup_insertCol_L);
              popup_insertCol.add(popup_insertCol_R);
+        */
         
         /*
          * Create JPopupMenu
@@ -423,7 +456,7 @@ public class ZeaTable extends JTable
         this.popup = new JPopupMenu();
              //add submenus and menu items to popup
              popup.add(popup_insertRow);
-             popup.add(popup_insertCol);
+             //popup.add(popup_insertCol);
         
         
         //'this' listens for when the mouse is right clicked
@@ -454,8 +487,19 @@ public class ZeaTable extends JTable
         while( !(parent instanceof JFrame) && parent instanceof Component) {
             parent = parent.getParent();
         }*/
+        
         if(parent instanceof ZeaxanthinGui) {
             ((ZeaxanthinGui)parent).setSaveStatus(isSaved);
         }
+    }
+    
+    
+    
+    /**
+     * In the event that someone tries to serialize this object, throw an exception.
+     */
+    private void writeObject(ObjectOutputStream oos) throws IOException {
+        throw new IOException("The class: " + this.getClass().getSimpleName() +
+                              " is NOT serializable.");
     }
 }
