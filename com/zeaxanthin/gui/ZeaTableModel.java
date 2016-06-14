@@ -121,38 +121,6 @@ public class ZeaTableModel extends DefaultTableModel {
     
     
     /**
-     * Retrieve the Vector of Strings containing the column class identifiers.
-     */
-    public Vector<String> getColumnClassIdentifiers() {
-        return this.columnClassIdentifiers;
-    }
-    
-    
-    
-    /**
-     * Set the Vector of Strings containing the column class identifiers.
-     */
-    public void setColumnClassIdentifiers(Vector<String> columnClassIdentifiers) {
-        this.columnClassIdentifiers = columnClassIdentifiers;
-        return;
-    }
-    
-    
-    
-    /**
-     * Move a column class identifier to another column index.
-     */
-    public void moveColumnClassIdentifiers(int column, int targetColumn) {
-        String str = columnClassIdentifiers.get(column),
-               tmp;
-        tmp = columnClassIdentifiers.set(targetColumn, str);
-        columnClassIdentifiers.setElementAt(tmp, column);
-        return;
-    }
-    
-    
-    
-    /**
      * Add another column class identifier to the end of the Vector containing them.
      */
     public boolean addColumnClassIdentifiers(String str) {
@@ -196,6 +164,15 @@ public class ZeaTableModel extends DefaultTableModel {
     
     
     /**
+     * Retrieve the Vector of Strings containing the column class identifiers.
+     */
+    public Vector<String> getColumnClassIdentifiers() {
+        return this.columnClassIdentifiers;
+    }
+    
+    
+    
+    /**
      * Inserts an empty row in the model.
      */
     public void insertEmptyRowAbove(int row) {
@@ -214,10 +191,62 @@ public class ZeaTableModel extends DefaultTableModel {
     
     
     /**
-     * Static methods needed by some of the constructors.
+     * Move a column class identifier to another column index.
      */
+    public void moveColumnClassIdentifiers(int column, int targetColumn) {
+        String str = columnClassIdentifiers.get(column),
+               tmp;
+        tmp = columnClassIdentifiers.set(targetColumn, str);
+        columnClassIdentifiers.setElementAt(tmp, column);
+        return;
+    }
+    
+    
+    
     /**
-     * Determines the object 
+     * Set the Vector of Strings containing the column class identifiers.
+     */
+    public void setColumnClassIdentifiers(Vector<String> columnClassIdentifiers) {
+        this.columnClassIdentifiers = columnClassIdentifiers;
+        return;
+    }
+    
+    
+    
+    /*
+     **********************************************************************************************
+     **********************************************************************************************
+     **********************************************************************************************
+     */
+    
+    
+    
+    /**
+     * Convert an array of objects to a Vector of Strings. This is to bu used by
+     * the ZeaTableModel constructors.
+     */
+    private static Vector<String> convertColumnClassesToVector(Object[] columnClasses) {
+        Vector<String> columnClassesVector = new Vector<String>();
+        for(int i = 0; i < columnClasses.length; i++) {
+            columnClassesVector.add(columnClasses[i].toString());
+        }
+        return columnClassesVector;
+    }
+    
+    
+    
+    /**
+     * Convert an array of Objects to a Vector of Objects.
+     */
+    private static Vector<Object> convertColumnNamesToVector(Object[] columnNames) {
+        return new Vector<Object>( Arrays.asList(columnNames) );
+    }
+    
+    
+    
+    /**
+     * Determines the class of the column as specified in columnClasses, which is
+     * an array of Strings.
      */
     private static Class<?> getColumnClassClass(Object[] columnClasses, int col) {
         if(col >= columnClasses.length) {
@@ -242,6 +271,13 @@ public class ZeaTableModel extends DefaultTableModel {
         return String.class;
     }
     
+    
+    
+    /**
+     * Read the column class identifiers in the 'columnClasses' array and create
+     * objects representing the data of the specified class using the toString()
+     * function and the <class>(String) constructor.
+     */
     private static Vector<Vector<Object>> processData_convertDataToVector(Object[][] data, Object[] columnClasses) {
         /*
          * This section converts 'data' to a Vector<Vector<Object>>. All objects in
@@ -342,18 +378,6 @@ public class ZeaTableModel extends DefaultTableModel {
         }
         
         return dataVector;
-    }
-    
-    private static Vector<Object> convertColumnNamesToVector(Object[] columnNames) {
-        return new Vector<Object>( Arrays.asList(columnNames) );
-    }
-    
-    private static Vector<String> convertColumnClassesToVector(Object[] columnClasses) {
-        Vector<String> columnClassesVector = new Vector<String>();
-        for(int i = 0; i < columnClasses.length; i++) {
-            columnClassesVector.add(columnClasses[i].toString());
-        }
-        return columnClassesVector;
     }
     
     

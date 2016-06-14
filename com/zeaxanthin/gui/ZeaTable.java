@@ -9,6 +9,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Point;
@@ -37,7 +39,7 @@ import com.zeaxanthin.ZeaxanthinGui;
 // This class is not intended to be serialized.
 @SuppressWarnings("serial")
 public class ZeaTable extends JTable
-                      implements ActionListener, MouseListener
+                      implements ActionListener, MouseListener, KeyListener
 {
     /**
      * A custom TableModel. This is instance data to make it easier to keep
@@ -290,6 +292,37 @@ public class ZeaTable extends JTable
         setGuiParentStatus(false);
         
         return;
+    }
+    
+    
+    
+    /**
+     *
+     */
+    public void keyPressed(KeyEvent e) {
+        return;
+    }
+    
+    
+    
+    /**
+     *
+     */
+    public void keyReleased(KeyEvent e) {
+        return;
+    }
+    
+    
+    
+    /**
+     *
+     */
+    public void keyTyped(KeyEvent e) {
+        int location = e.getKeyLocation();
+        
+        if(location == KeyEvent.VK_DELETE) {
+            setValueAt( null, getSelectedRow(), getSelectedColumn() );
+        }
     }
     
     
