@@ -3,11 +3,11 @@
  *  +-----------------------------------+
  *  |             JFrame                |   ZeaxanthinGui
  *  |+---------------------------------+|
- *  ||          JTabbedPane            ||
+ *  ||          JTabbedPane            ||   ZeaTabbedPane
  *  ||+-------------------------------+||
- *  |||         JTabbedPane           |||
+ *  |||         JTabbedPane           |||   ZeaSimulationPane{Multiple,Single}
  *  |||+-----------------------------+|||
- *  ||||        JScrollPane          ||||
+ *  ||||        JScrollPane          ||||   JScrollPane
  *  ||||+---------------------------+||||
  *  |||||         JTable            |||||   ZeaTable
  *  |||||+-------------------------+|||||
@@ -205,7 +205,7 @@ public class ZeaxanthinGui extends JFrame
      * Creates a Menu Bar along the top of the window/JFrame and contains
      * multiple options. Also creates a popup menu
      */
-    private void createMenus() {        
+    private void createMenus() {
         /*
          * Create JMenuItems for the JMenuBar and JPopupMenu
          */
@@ -657,9 +657,9 @@ public class ZeaxanthinGui extends JFrame
         //Schedule a job for the event-dispatching thread:
         //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
+            public void run() {            
                 ZeaxanthinGui gui = new ZeaxanthinGui();
-
+                
                 gui.getContentPane().setBackground( Color.BLACK );
                 gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 //gui.pack();

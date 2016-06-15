@@ -62,7 +62,7 @@ public class FileTypeCSVHW extends FileTypeCSV
      */
     @Override
     public String getDescription() {
-        return "CSV Hardy-Weinburg files (*."+CSVHW_FILE_EXT+")";
+        return "CSV Hardy-Weinburg files (*." + CSVHW_FILE_EXT + ")";
     }
     
     
@@ -81,7 +81,7 @@ public class FileTypeCSVHW extends FileTypeCSV
             return filename;
         }
         else{
-            return new File( filename.toString() + "." + CSVHW_FILE_EXT );
+            return new File(filename.toString() + "." + CSVHW_FILE_EXT);
         }
     }
 }
