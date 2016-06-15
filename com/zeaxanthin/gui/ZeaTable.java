@@ -9,8 +9,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Point;
@@ -33,19 +31,47 @@ import javax.swing.table.TableRowSorter;
  * Zeaxanthin Libraries
  */
 import com.zeaxanthin.gui.ZeaTableModel;
+import com.zeaxanthin.io.SaveStatus;
+import com.zeaxanthin.io.SaveStatusListener;
 import com.zeaxanthin.ZeaxanthinGui;
-
 
 // This class is not intended to be serialized.
 @SuppressWarnings("serial")
 public class ZeaTable extends JTable
-                      implements ActionListener, MouseListener, KeyListener
+                      implements ActionListener,
+                                 MouseListener,
+                                 SaveStatus,
+                                 SaveStatusListener
 {
     /**
      * A custom TableModel. This is instance data to make it easier to keep
      * track of the TableModel.
      */
     protected ZeaTableModel zeaTableModel;
+    
+    
+    
+    /**
+     * All SaveStatus children this object responds to.
+     */
+    protected Vector<SaveStatus> saveStatusChildren = null;
+    
+    
+    
+    /**
+     * A parent class that listens for when this object is modified.
+     */
+    protected SaveStatusListener statusParent = null;
+    
+    
+    
+    /**
+     * The save status of this object. 'true' when this object has not been modified.
+     * 'false' when this object has been modified.
+     */
+    protected boolean saveStatus = true;
+    
+    
     
     /****************************************************************
      * Popup menus
@@ -57,6 +83,8 @@ public class ZeaTable extends JTable
     /*
      * End of Popup menus
      ****************************************************************/
+    
+    
     
     /**
      * Coordinates of the selected cell. Default is 0,0.
@@ -84,7 +112,7 @@ public class ZeaTable extends JTable
     public ZeaTable() {
         //call constructor that uses a ZeaTableModel
         //this constructor will handle everything
-        this(new ZeaTableModel());  
+        this( new ZeaTableModel() );
     }
     
     
@@ -96,7 +124,7 @@ public class ZeaTable extends JTable
     public ZeaTable(int numRows, int numColumns) {
         //call constructor that uses a ZeaTableModel
         //this constructor will handle everything
-        this(new ZeaTableModel(numRows, numColumns));
+        this( new ZeaTableModel(numRows, numColumns) );
     }
     
     
@@ -110,7 +138,7 @@ public class ZeaTable extends JTable
     public ZeaTable(Object[][] rowData, Object[] columnNames, Object[] columnClass) {
         //call constructor that uses a ZeaTableModel
         //this constructor will handle everything
-        this(new ZeaTableModel(rowData, columnNames, columnClass));
+        this( new ZeaTableModel(rowData, columnNames, columnClass) );
     }
     
     
@@ -124,6 +152,9 @@ public class ZeaTable extends JTable
         
         this.zeaTableModel = dm;        //save the object pointer
         
+        this.zeaTableModel.setSaveStatusListener(this);
+        this.saveStatusChildren = new Vector<SaveStatus>();
+
                                         //create a row sorter
         this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
         
@@ -142,6 +173,9 @@ public class ZeaTable extends JTable
         super(dm, cm);                  //call super-class constructor
         
         this.zeaTableModel = dm;        //save the object pointer
+
+        this.zeaTableModel.setSaveStatusListener(this);
+        this.saveStatusChildren = new Vector<SaveStatus>();
 
                                         //create a row sorter
         this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
@@ -165,6 +199,8 @@ public class ZeaTable extends JTable
         super(dm, cm, sm);              //call super-class constructor
         
         this.zeaTableModel = dm;        //save the object pointer
+
+        this.zeaTableModel.setSaveStatusListener(this);
         
                                         //create a row sorter
         this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
@@ -186,6 +222,7 @@ public class ZeaTable extends JTable
         //call constructor that uses a ZeaTableModel
         //this constructor will handle everything
         this(new ZeaTableModel(rowData, columnNames, columnClass));
+        this.zeaTableModel.setSaveStatusListener(this);
     }
     
     
@@ -219,6 +256,15 @@ public class ZeaTable extends JTable
             
         }
         */
+    }
+    
+    
+    
+    /**
+     * Add a child SaveStatus object.
+     */
+    public boolean addSaveStatusChild(final SaveStatus statusChild) {
+        return this.saveStatusChildren.add(statusChild);
     }
     
     
@@ -258,6 +304,24 @@ public class ZeaTable extends JTable
     
     
     /**
+     * Return the saveStatus of this object.
+     */
+    public boolean getSaveStatus() {
+        return this.saveStatus;
+    }
+    
+    
+    
+    /**
+     * Get a Vector of SaveStatus children.
+     */
+    public Vector<SaveStatus> getSaveStatusChildren() {
+        return this.saveStatusChildren;
+    }
+    
+    
+    
+    /**
      * Retrieve our ZeaTableModel pointer
      */
     public ZeaTableModel getZeaTableModel() {
@@ -292,37 +356,6 @@ public class ZeaTable extends JTable
         setGuiParentStatus(false);
         
         return;
-    }
-    
-    
-    
-    /**
-     *
-     */
-    public void keyPressed(KeyEvent e) {
-        return;
-    }
-    
-    
-    
-    /**
-     *
-     */
-    public void keyReleased(KeyEvent e) {
-        return;
-    }
-    
-    
-    
-    /**
-     *
-     */
-    public void keyTyped(KeyEvent e) {
-        int location = e.getKeyLocation();
-        
-        if(location == KeyEvent.VK_DELETE) {
-            setValueAt( null, getSelectedRow(), getSelectedColumn() );
-        }
     }
     
     
@@ -412,6 +445,40 @@ public class ZeaTable extends JTable
     
     
     /**
+     * Notify the statusParent that changes have been made to this object.
+     */
+    public void notifySaveStatusListener(boolean isSaved) {
+        this.statusParent.updateSaveStatusListener(this, isSaved);
+        return;
+    }
+    
+    
+    
+    /**
+     * Set the saveStatus of this object.
+     */
+    public void setSaveStatus(boolean isSaved) {
+        if( this.saveStatus != isSaved ) {
+            this.notifySaveStatusListener(isSaved);
+        }
+        return;
+    }
+    
+    
+    
+    /**
+     * Set the SaveStatusListener for this object.
+     */
+    public void setSaveStatusListener(final SaveStatusListener statusParent) {
+        this.statusParent = statusParent;
+        
+        this.statusParent.addSaveStatusChild(this);
+        return;
+    }
+    
+    
+    
+    /**
      * Sets the value for the cell in the table model at row and column. When
      * executed, the super-parent gui is notified that the table has been modified,
      * and the super-parent sets its save status accordingly.
@@ -421,6 +488,15 @@ public class ZeaTable extends JTable
         super.setValueAt(aValue, row, column);
 
         setGuiParentStatus(false);
+        return;
+    }
+    
+    
+    
+    /**
+     * Update the SaveStatusListener when a child has been modified.
+     */
+    public void updateSaveStatusListener(final Object source, boolean isSaved) {
         return;
     }
     

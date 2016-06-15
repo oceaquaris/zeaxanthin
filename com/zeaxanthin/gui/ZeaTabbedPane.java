@@ -9,24 +9,49 @@
  */
 package com.zeaxanthin.gui;
 
+
+
 /*
  * Standard Java Libraries
  */
+import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.FlowLayout;
+import java.awt.Insets;
+import java.util.Vector;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.plaf.metal.MetalIconFactory;
-import java.awt.Component;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.FlowLayout;
-import java.awt.Insets;
+
+/*
+ * Zeaxanthin Libraries
+ */
+import com.zeaxanthin.io.SaveStatus;
+import com.zeaxanthin.io.SaveStatusListener;
+
 
 
 @SuppressWarnings("serial")     // this class is not intended to be serialized.
-public class ZeaTabbedPane extends JTabbedPane {
+public class ZeaTabbedPane extends JTabbedPane implements SaveStatusListener {
+    /**
+     * All SaveStatus children this object responds to.
+     */
+    protected Vector<SaveStatus> saveStatusChildren = null;
+    
+    
+    
+    /*
+     **********************************************************************************************
+     **********************************************************************************************
+     **********************************************************************************************
+     */
+    
+    
+    
     /**
      * Creates an empty TabbedPane with a default tab placement of JTabbedPane.TOP.
      */
@@ -61,6 +86,15 @@ public class ZeaTabbedPane extends JTabbedPane {
      **********************************************************************************************
      **********************************************************************************************
      */
+    
+    
+    
+    /**
+     * Add a child SaveStatus object.
+     */
+    public boolean addSaveStatusChild(final SaveStatus statusChild) {
+        return this.saveStatusChildren.add(statusChild);
+    }
     
     
     
@@ -129,6 +163,24 @@ public class ZeaTabbedPane extends JTabbedPane {
 
     
     
+    /**
+     * Get a Vector of SaveStatus children.
+     */
+    public Vector<SaveStatus> getSaveStatusChildren() {
+        return this.saveStatusChildren;
+    }
+    
+    
+    
+    /**
+     * Update the SaveStatusListener when a child has been modified.
+     */
+    public void updateSaveStatusListener(final Object source, boolean isSaved) {
+        return;
+    }
+
+    
+    
     /*
      **********************************************************************************************
      **********************************************************************************************
@@ -136,12 +188,24 @@ public class ZeaTabbedPane extends JTabbedPane {
      */
     
     
+    
     /**
      * A Component to make ZeaTabbedPane have closeable tabs.
      */
     public class TabCloseButton extends JPanel implements MouseListener {
+        /**
+         * The tab on the ZeaTabbedPane this TabCloseButton is associated with.
+         */
         private Component tab;
 
+        
+        /*
+         **********************************************************************************************
+         **********************************************************************************************
+         **********************************************************************************************
+         */
+        
+        
         /**
          * Constructs a Component to put use in ZeaTabbedPane.
          */

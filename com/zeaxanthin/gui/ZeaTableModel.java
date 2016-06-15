@@ -11,8 +11,16 @@ import java.util.Arrays;
 import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
 
+/*
+ * Zeaxanthin Libraries
+ */
+import com.zeaxanthin.io.SaveStatus;
+import com.zeaxanthin.io.SaveStatusListener;
+
 @SuppressWarnings("serial")     // this class is not intended to be serialized.
-public class ZeaTableModel extends DefaultTableModel {
+public class ZeaTableModel extends DefaultTableModel 
+                           implements SaveStatus
+{
     /**
      * Column class identifiers. Ex:"String","Integer","Double","Boolean"
      */
@@ -20,6 +28,20 @@ public class ZeaTableModel extends DefaultTableModel {
     
   
   
+    /**
+     * The SaveStatusListener for
+     */
+    protected SaveStatusListener statusParent = null;
+    
+    
+    
+    /**
+     * The save status of this object.
+     */
+    protected boolean saveStatus = true;
+    
+    
+    
     /*
      **********************************************************************************************
      **********************************************************************************************
@@ -164,6 +186,15 @@ public class ZeaTableModel extends DefaultTableModel {
     
     
     /**
+     * Return the saveStatus of this object.
+     */
+    public boolean getSaveStatus() {
+        return this.saveStatus;
+    }
+    
+    
+    
+    /**
      * Retrieve the Vector of Strings containing the column class identifiers.
      */
     public Vector<String> getColumnClassIdentifiers() {
@@ -204,10 +235,44 @@ public class ZeaTableModel extends DefaultTableModel {
     
     
     /**
+     * Notify the statusParent that changes have been made to this object.
+     */
+    public void notifySaveStatusListener(boolean isSaved) {
+        this.statusParent.updateSaveStatusListener(this, isSaved);
+        return;
+    }
+    
+    
+    
+    /**
      * Set the Vector of Strings containing the column class identifiers.
      */
     public void setColumnClassIdentifiers(Vector<String> columnClassIdentifiers) {
         this.columnClassIdentifiers = columnClassIdentifiers;
+        return;
+    }
+    
+    
+    
+    /**
+     * Set the saveStatus of this object.
+     */
+    public void setSaveStatus(boolean isSaved) {
+        if( this.saveStatus != isSaved ) {
+            this.notifySaveStatusListener(isSaved);
+        }
+        return;
+    }
+    
+    
+    
+    /**
+     * Set the SaveStatusListener for this object.
+     */
+    public void setSaveStatusListener(final SaveStatusListener statusParent) {
+        this.statusParent = statusParent;
+        
+        this.statusParent.addSaveStatusChild(this);
         return;
     }
     

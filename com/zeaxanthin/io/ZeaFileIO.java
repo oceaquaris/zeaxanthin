@@ -14,6 +14,7 @@ import javax.swing.JTable;
  * Zeaxanthin Libraries
  */
 import com.zeaxanthin.gui.ZeaTable;
+import com.zeaxanthin.gui.ZeaSimulationPane;
  
 /**
  * Interface to deal with extension names in custom made FileFilters
@@ -72,9 +73,16 @@ public interface ZeaFileIO
     
     
     /**
-     * Read the extension and return an ZeaTable to be displayed.
+     * Read the extension and return a ZeaTable to be displayed.
      */
     public abstract ZeaTable read(File filename);
+    
+    
+    
+    /**
+     * Read a file and return a loaded ZeaSimulationPane.
+     */
+    public abstract ZeaSimulationPane<?> readZeaSimulationPane(File filename);
     
     
     
@@ -82,4 +90,11 @@ public interface ZeaFileIO
      * Write the ZeaTable to a File
      */
     public abstract void write(ZeaTable obj, File filename);
+    
+    
+    
+    /**
+     * Write a ZeaSimulationPane to File
+     */
+    public abstract void writeZeaSimulationPane(ZeaSimulationPane<?> obj, File filename);
 }

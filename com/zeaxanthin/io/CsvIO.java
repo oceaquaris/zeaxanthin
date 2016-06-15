@@ -1,7 +1,9 @@
 /**
- * FileTypeCSV
+ * Write a description of class CsvIO here.
+ * 
+ * @author (your name) 
+ * @version (a version number or a date)
  */
-
 package com.zeaxanthin.io;
 
 /*
@@ -33,14 +35,13 @@ import com.opencsv.CSVWriter;
 /*
  * Zeaxanthin Libraries
  */
+import com.zeaxanthin.gui.simulation.CSVSimulation;
 import com.zeaxanthin.gui.ZeaSimulationPane;
+import com.zeaxanthin.gui.ZeaSimulationPaneSingle;
 import com.zeaxanthin.gui.ZeaTable;
 import com.zeaxanthin.io.ZeaFileIO;
-
-
-
-public class FileTypeCSV extends FileFilter
-                         implements ZeaFileIO
+ 
+public class CsvIO implements ZeaFileIO
 {
     /**
      * The file extension for which this FileFilter responds to.
@@ -56,35 +57,12 @@ public class FileTypeCSV extends FileFilter
      **********************************************************************************************
      */
     
+
     /**
-     * Implementation of the javax.swing.filechooser.FileFilter abstract class.
-     *
-     * Whether the given file is accepted by this filter.
+     * Constructor for objects of class CsvIO
      */
-    public boolean accept(File pathname) {
-        if(pathname.isDirectory()) {
-            return true;
-        }
-        
-        String extension = ZeaFileIO.getExtension(pathname);
-        if(extension != null && extension.equalsIgnoreCase(CSV_FILE_EXT)) {
-            return true;
-        }
-        
-        return false;
-    }
-    
-    
-    
-    /**
-     * Implementation of the javax.swing.filechooser.FileFilter abstract class.
-     *
-     * The description of this filter.
-     */
-    public String getDescription() {
-        return "Comma Separated Value files (*." + CSV_FILE_EXT + ")";
-    }
-    
+    public CsvIO() {}
+
     
     
     /**
@@ -273,8 +251,13 @@ public class FileTypeCSV extends FileFilter
         return new ZeaTable(data, header, classes);
     }
     
+    
+    
+    /**
+     * 
+     */
     public ZeaSimulationPane<?> readZeaSimulationPane(File filename) {
-        return null;
+        return new CSVSimulation( null, filename, this );
     }
     
     
@@ -383,6 +366,13 @@ public class FileTypeCSV extends FileFilter
      * Write a ZeaSimulationPane to File
      */
     public void writeZeaSimulationPane(ZeaSimulationPane<?> obj, File filename) {
+        if( !(obj instanceof CSVSimulation) ) {
+            //TODO: debug
+            return;
+        }
+        if( obj instanceof ZeaSimulationPaneSingle ) {
+            this.write( ((ZeaSimulationPaneSingle)obj).getZeaTable(), filename );
+        }
         return;
     }
 }
