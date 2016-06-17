@@ -12,12 +12,14 @@ package com.zeaxanthin.gui;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Vector;
 import javax.swing.JTabbedPane;
 
 /*
  * Zeaxanthin Libraries
  */
 import com.zeaxanthin.io.SaveStatus;
+import com.zeaxanthin.io.SaveStatusListener;
 import com.zeaxanthin.io.ZeaFileIO;
 
 
@@ -31,7 +33,8 @@ import com.zeaxanthin.io.ZeaFileIO;
 
 public abstract class ZeaSimulationPaneMultiple extends JTabbedPane
                                                 implements ZeaSimulationPane<ZeaSimulationPaneMultiple>,
-                                                           SaveStatus
+                                                           SaveStatus,
+                                                           SaveStatusListener
 {
     /**
      * The File that has been loaded.
@@ -54,6 +57,28 @@ public abstract class ZeaSimulationPaneMultiple extends JTabbedPane
     
     
     
+    /**
+     * A parent class that listens for when this object is modified.
+     */
+    protected SaveStatusListener statusParent = null;
+    
+    
+    
+    /**
+     * The save status of this object. 'true' when this object has not been modified.
+     * 'false' when this object has been modified.
+     */
+    protected boolean saveStatus = true;
+
+
+
+    /**
+     * All SaveStatus children this object responds to.
+     */
+    protected Vector<SaveStatus> saveStatusChildren = null;
+
+
+
     /*
      **********************************************************************************************
      **********************************************************************************************
@@ -73,6 +98,17 @@ public abstract class ZeaSimulationPaneMultiple extends JTabbedPane
      **********************************************************************************************
      **********************************************************************************************
      */
+    
+    
+    
+    /**
+     * Update the SaveStatusListener when a child has been modified.
+     * This function should be called by the child.
+     */
+    public void childModified(final Object source, boolean isSaved) {
+        this.setSaveStatusNotifySaveStatusListener(isSaved);
+        return;
+    }
     
     
     
@@ -105,10 +141,6 @@ public abstract class ZeaSimulationPaneMultiple extends JTabbedPane
     
     
     
-    public abstract void notifySaveStatusListener();
-
-    
-    
     /**
      * Save the ZeaSimulationPane
      */
@@ -124,10 +156,53 @@ public abstract class ZeaSimulationPaneMultiple extends JTabbedPane
     
     
     /**
-     * Set the save status of the ZeaSimulationPane
+     * SaveStatus implementation
+     *
+     * Set the saveStatus of the SaveStatus object.
+     * This DOES NOT notify the 'statusParent' of changes to this variable.
      */
     public void setSaveStatus(boolean isSaved) {
         this.loadedFileSaveStatus = isSaved;
+        return;
+    }
+    
+    
+    
+    /**
+     * Notify the children of the SaveStatusListener that the file has been saved
+     * ONLY IF 'saveStatus' and 'isSaved' are different.
+     */
+    public void setSaveStatusNotifySaveStatusChildren(boolean isSaved) {
+        if(this.loadedFileSaveStatus != isSaved) {
+            this.loadedFileSaveStatus = isSaved;
+            for(SaveStatus ssobj : this.saveStatusChildren) {
+                if(ssobj instanceof SaveStatusListener) {
+                    ((SaveStatusListener)ssobj).setSaveStatusNotifySaveStatusChildren(isSaved);
+                }
+                else if(ssobj instanceof SaveStatus) {
+                    ssobj.setSaveStatus(isSaved);
+                }
+                else {
+                    return;
+                }
+            }
+        }
+    }
+    
+    
+    
+    /**
+     * SaveStatus implementation
+     *
+     * Set the saveStatus of the SaveStatus object AND notify the SaveStatusListener
+     * ONLY IF 'isSaved' and 'saveStatus' are different.
+     */
+    public void setSaveStatusNotifySaveStatusListener(boolean isSaved) {
+        if( this.loadedFileSaveStatus != isSaved ) {
+            this.loadedFileSaveStatus = isSaved;
+            this.statusParent.childModified(this, this.loadedFileSaveStatus);
+        }
+        return;
     }
     
     

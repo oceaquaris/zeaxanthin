@@ -235,10 +235,16 @@ public class ZeaTableModel extends DefaultTableModel
     
     
     /**
-     * Notify the statusParent that changes have been made to this object.
+     * SaveStatus implementation
+     *
+     * Set the saveStatus of the SaveStatus object AND notify the SaveStatusListener
+     * ONLY IF 'isSaved' and 'saveStatus' are different.
      */
-    public void notifySaveStatusListener(boolean isSaved) {
-        this.statusParent.updateSaveStatusListener(this, isSaved);
+    public void setSaveStatusNotifySaveStatusListener(boolean isSaved) {
+        if( this.saveStatus != isSaved ) {
+            this.saveStatus = isSaved;
+            this.statusParent.childModified(this, this.saveStatus);
+        }
         return;
     }
     
@@ -255,12 +261,13 @@ public class ZeaTableModel extends DefaultTableModel
     
     
     /**
-     * Set the saveStatus of this object.
+     * SaveStatus implementation
+     *
+     * Set the saveStatus of the SaveStatus object.
+     * This DOES NOT notify the 'statusParent' of changes to this variable.
      */
     public void setSaveStatus(boolean isSaved) {
-        if( this.saveStatus != isSaved ) {
-            this.notifySaveStatusListener(isSaved);
-        }
+        this.saveStatus = isSaved;
         return;
     }
     
@@ -269,7 +276,7 @@ public class ZeaTableModel extends DefaultTableModel
     /**
      * Set the SaveStatusListener for this object.
      */
-    public void setSaveStatusListener(final SaveStatusListener statusParent) {
+    public void setSaveStatusListener(SaveStatusListener statusParent) {
         this.statusParent = statusParent;
         
         this.statusParent.addSaveStatusChild(this);

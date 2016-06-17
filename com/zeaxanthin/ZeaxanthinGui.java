@@ -34,6 +34,7 @@ package com.zeaxanthin;
  * Standard Java Libraries
  */
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -50,6 +51,7 @@ import java.lang.Exception;
 import java.lang.RuntimeException;
 import java.util.List;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.Icon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -71,19 +73,24 @@ import com.opencsv.CSVReader;
  * Zeaxanthin Libraries
  */
 import com.zeaxanthin.gui.ZeaTable;
-import com.zeaxanthin.io.FileTypeCSV;
-import com.zeaxanthin.io.FileTypeCSVHW;
+import com.zeaxanthin.io.CSVIO;
+import com.zeaxanthin.io.FileFilterCSV;
 import com.zeaxanthin.io.ZeaFileIO;
+import com.zeaxanthin.gui.ZeaTabbedPane;
+import com.zeaxanthin.gui.ZeaSimulationPane;
 
 
 
+/*
+ * This class is not intended to be serialized.
+ */
+@SuppressWarnings("serial")
 
-@SuppressWarnings("serial")     // this class is not intended to be serialized.
+
+
 public class ZeaxanthinGui extends JFrame 
                            implements ActionListener, MouseListener
 {
-    @SuppressWarnings("serial")     // this class is not intended to be serialized.
-
     /**
      * The name of the program: Zeaxanthin
      */
@@ -161,6 +168,7 @@ public class ZeaxanthinGui extends JFrame
     /****************************************************************
      * Table Components
      */
+    private ZeaTabbedPane tabbedPane = null;
     private ZeaTable table = null;
     private JScrollPane scrollTable = null;
     /*
@@ -173,7 +181,8 @@ public class ZeaxanthinGui extends JFrame
      * File Choosing Components
      */
     private JFileChooser fileChooser;
-    private FileTypeCSV csvFilter;
+    private final FileFilterCSV csvFilter = new FileFilterCSV();
+    private final CSVIO csvio = new CSVIO();
     /*
      * End of File Choosing Components
      ****************************************************************/
@@ -310,9 +319,6 @@ public class ZeaxanthinGui extends JFrame
         //we only want files of types we recognize
         fileChooser.setAcceptAllFileFilterUsed(false);
         
-        //create file filters for desired file types
-        csvFilter = new FileTypeCSV(); //filter for *.csv
-        
         //add file filters for desired file types
         fileChooser.addChoosableFileFilter(csvFilter);
     }
@@ -337,7 +343,7 @@ public class ZeaxanthinGui extends JFrame
                          null,
                          null);
         if(pane == JOptionPane.YES_OPTION) {
-            saveTable();
+            return;
         }
         else if(pane == JOptionPane.NO_OPTION) {
             return;
@@ -348,114 +354,17 @@ public class ZeaxanthinGui extends JFrame
     }
     
     
-    
-    /**
-     *
-     */
-    private void createTable(int row, int col) {
-        //test to see if table has been previously created
-        if(this.scrollTable != null) {
-            //TODO: probably add a warning "don't overwrite old data"
-            //remove old panel
-            remove(scrollTable);
+    private void openTab(ZeaSimulationPane<?> pane) {
+        if(this.tabbedPane == null) {
+            this.tabbedPane = new ZeaTabbedPane();
+            this.add(this.tabbedPane);
         }
-        //create the table
-        this.table = new ZeaTable(row, col);
-        this.scrollTable = new JScrollPane( this.table );
         
-        //add it to the gui
-        add( this.scrollTable );
+        String title = pane.getLoadedFile().getName();
         
-        //update the screen
+        this.tabbedPane.addTab(title, null, pane.getSelf(), null);
+        
         setVisible(true);
-    }
-/*    private void createTable(Object[][] data, Object[] headers) {
-        //test to see if table has been previously created
-        if(this.table == null && this.scrollTable == null) {
-            //create the table
-            this.table = new ZeaTable(data, headers);
-            this.scrollTable = new JScrollPane( this.table );
-            
-            //add it to the gui
-            add( this.scrollTable );
-            
-            //update the screen
-            setVisible(true);
-        }
-        //table has already been created
-        else{
-            //TODO: probably add a warning "don't overwrite old data"
-            //remove old panel
-            remove(scrollTable);
-            
-            //make new pointers
-            this.table = new ZeaTable(data, headers);
-            this.scrollTable = new JScrollPane( this.table );
-            
-            //add it to the gui
-            add( this.scrollTable );
-            
-            //update the screen
-            setVisible(true);
-        }
-    }*/
-    private void createTable(ZeaTable table) {
-        //determine if there is already a table active
-        if(this.scrollTable != null) {
-            openDialog_unsavedChanges();
-            
-            //remove old panel
-            remove(scrollTable);
-        }
-        
-        //add the table
-        this.table = table;
-        
-        //create and add the JScrollPane
-        this.scrollTable = new JScrollPane( this.table );
-        
-        //add the scrollTable to the gui
-        add(this.scrollTable);
-        
-        //update screen
-        setVisible(true);
-        return;
-    }
-    
-    
-    
-    /**
-     * Save the table opened up to a file.
-     */
-    public void saveTable() {
-        if(this.loadedFile != null) {
-            if(ZeaFileIO.getExtension(loadedFile)
-                        .equalsIgnoreCase(FileTypeCSV.CSV_FILE_EXT) /*.csv*/) {
-                csvFilter.write(this.table, this.loadedFile);
-                this.setSaveStatus(true);
-            }
-        }
-        else if(this.table != null){
-            int returnValue = fileChooser.showSaveDialog(this);
-            
-            if(returnValue == JFileChooser.APPROVE_OPTION) {
-                //get the name of the file we're saving to
-                this.loadedFile = fileChooser.getSelectedFile();
-                
-
-                if(fileChooser.getFileFilter() == csvFilter /*.csv*/) {
-                    //make sure filename has the right ending (.csv)
-                    this.loadedFile = csvFilter.processFilename(this.loadedFile);
-                    csvFilter.write(this.table, this.loadedFile);
-                    this.setSaveStatus(true);
-                    return;
-                }
-                
-            }
-        }
-        else {
-            return;
-        }
     }
     
     
@@ -558,8 +467,6 @@ public class ZeaxanthinGui extends JFrame
          * Create a table
          */
         if(e.getSource() == m_new_HW || e.getSource() == p_new_HW) {            
-            createTable(7, 7);
-            setSaveStatus(true);
         }
         
         
@@ -574,11 +481,9 @@ public class ZeaxanthinGui extends JFrame
                 this.loadedFile = fileChooser.getSelectedFile();
                 
                 if(ZeaFileIO.getExtension( loadedFile )
-                            .equalsIgnoreCase(FileTypeCSV.CSV_FILE_EXT) /*.csv*/) {
-                    createTable( csvFilter.read(loadedFile));   //call csv filter
-                                                                //and create table
-                    setSaveStatus(true);                        //update save status,
-                                                                //update gui title
+                            .equalsIgnoreCase(FileFilterCSV.CSV_FILE_EXT) /*.csv*/) {
+                    openTab( csvio.readZeaSimulationPane(loadedFile));   //call csv filter
+                                                         //and create table
                 }
                 else {
                     return;
@@ -592,7 +497,11 @@ public class ZeaxanthinGui extends JFrame
          * Save the data
          */
         if(e.getSource() == m_save) {
-            saveTable();
+            Component tab = this.tabbedPane.getSelectedComponent();
+            
+            if( tab instanceof ZeaSimulationPane ) {
+                ((ZeaSimulationPane)tab).saveSimulation();
+            }
         }
         
         
@@ -610,10 +519,10 @@ public class ZeaxanthinGui extends JFrame
                 
                 if(fileChooser.getFileFilter() == csvFilter /*.csv*/) {
                     //make sure filename has the right ending (.csv)
-                    this.loadedFile = csvFilter.processFilename(this.loadedFile);
+                    this.loadedFile = csvio.processFilename(this.loadedFile);
                     
                     //write the file
-                    csvFilter.write(this.table, this.loadedFile);
+                    csvio.write(this.table, this.loadedFile);
                     
                     //update save status and window header
                     this.setSaveStatus(true);
@@ -660,7 +569,6 @@ public class ZeaxanthinGui extends JFrame
             public void run() {            
                 ZeaxanthinGui gui = new ZeaxanthinGui();
                 
-                gui.getContentPane().setBackground( Color.BLACK );
                 gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 //gui.pack();
                 gui.setSize(500, 500);

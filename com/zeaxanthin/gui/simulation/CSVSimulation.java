@@ -17,8 +17,6 @@ import java.io.File;
  * Zeaxanthin Libraries
  */
 import com.zeaxanthin.gui.ZeaSimulationPaneSingle;
-import com.zeaxanthin.io.FileTypeCSV;
-import com.zeaxanthin.io.SaveStatus;
 import com.zeaxanthin.io.SaveStatusListener;
 import com.zeaxanthin.io.ZeaFileIO;
 

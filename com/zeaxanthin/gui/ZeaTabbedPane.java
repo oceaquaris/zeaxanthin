@@ -164,6 +164,17 @@ public class ZeaTabbedPane extends JTabbedPane implements SaveStatusListener {
     
     
     /**
+     * Update the SaveStatusListener when a child has been modified.
+     * This function should be called by the child.
+     */
+    public void childModified(final Object source, boolean isSaved) {
+
+        return;
+    }
+    
+    
+    
+    /**
      * Get a Vector of SaveStatus children.
      */
     public Vector<SaveStatus> getSaveStatusChildren() {
@@ -173,12 +184,13 @@ public class ZeaTabbedPane extends JTabbedPane implements SaveStatusListener {
     
     
     /**
-     * Update the SaveStatusListener when a child has been modified.
+     * Notify the children of the SaveStatusListener that the file has been saved
+     * ONLY IF 'saveStatus' and 'isSaved' are different.
      */
-    public void updateSaveStatusListener(final Object source, boolean isSaved) {
+    public void setSaveStatusNotifySaveStatusChildren(boolean isSaved) {
         return;
     }
-
+    
     
     
     /*

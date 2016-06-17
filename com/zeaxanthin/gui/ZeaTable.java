@@ -174,8 +174,11 @@ public class ZeaTable extends JTable
         
         this.zeaTableModel = dm;        //save the object pointer
 
-        this.zeaTableModel.setSaveStatusListener(this);
+        //Instantiating this variable is ORDER DEPENDENT!!! DO THIS FIRST!!!
         this.saveStatusChildren = new Vector<SaveStatus>();
+        
+        //Set a SaveStatusListener
+        this.zeaTableModel.setSaveStatusListener(this);
 
                                         //create a row sorter
         this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
@@ -200,6 +203,10 @@ public class ZeaTable extends JTable
         
         this.zeaTableModel = dm;        //save the object pointer
 
+        //Instantiating this variable is ORDER DEPENDENT!!! DO THIS FIRST!!!
+        this.saveStatusChildren = new Vector<SaveStatus>();
+        
+        //Set a SaveStatusListener
         this.zeaTableModel.setSaveStatusListener(this);
         
                                         //create a row sorter
@@ -222,7 +229,6 @@ public class ZeaTable extends JTable
         //call constructor that uses a ZeaTableModel
         //this constructor will handle everything
         this(new ZeaTableModel(rowData, columnNames, columnClass));
-        this.zeaTableModel.setSaveStatusListener(this);
     }
     
     
@@ -261,10 +267,23 @@ public class ZeaTable extends JTable
     
     
     /**
+     * SaveStatusListener implementation
+     *
      * Add a child SaveStatus object.
      */
     public boolean addSaveStatusChild(final SaveStatus statusChild) {
         return this.saveStatusChildren.add(statusChild);
+    }
+    
+    
+    
+    /**
+     * Update the SaveStatusListener when a child has been modified.
+     * This function should be called by the child.
+     */
+    public void childModified(final Object source, boolean isSaved) {
+        this.setSaveStatusNotifySaveStatusListener(isSaved);
+        return;
     }
     
     
@@ -304,6 +323,8 @@ public class ZeaTable extends JTable
     
     
     /**
+     * SaveStatus implementation
+     *
      * Return the saveStatus of this object.
      */
     public boolean getSaveStatus() {
@@ -313,6 +334,8 @@ public class ZeaTable extends JTable
     
     
     /**
+     * SaveStatusListener implementation
+     *
      * Get a Vector of SaveStatus children.
      */
     public Vector<SaveStatus> getSaveStatusChildren() {
@@ -337,9 +360,9 @@ public class ZeaTable extends JTable
         //let the ZeaTableModel class handle this.
         zeaTableModel.insertEmptyRowAbove(row);
 
-        //table has been modified; gui needs to know this.
-        setGuiParentStatus(false);
-
+        //table has been modified; statusParent needs to know this.
+        this.setSaveStatusNotifySaveStatusListener(false);
+        
         return;
     }
     
@@ -352,8 +375,8 @@ public class ZeaTable extends JTable
         //let the ZeaTableModel class handle this.
         zeaTableModel.insertEmptyRowBelow(row);
         
-        //table has been modified; gui needs to know this.
-        setGuiParentStatus(false);
+        //table has been modified; statusParent needs to know this.
+        this.setSaveStatusNotifySaveStatusListener(false);
         
         return;
     }
@@ -445,34 +468,66 @@ public class ZeaTable extends JTable
     
     
     /**
-     * Notify the statusParent that changes have been made to this object.
-     */
-    public void notifySaveStatusListener(boolean isSaved) {
-        this.statusParent.updateSaveStatusListener(this, isSaved);
-        return;
-    }
-    
-    
-    
-    /**
-     * Set the saveStatus of this object.
+     * SaveStatus implementation
+     *
+     * Set the saveStatus of the SaveStatus object.
+     * This DOES NOT notify the 'statusParent' of changes to this variable.
      */
     public void setSaveStatus(boolean isSaved) {
-        if( this.saveStatus != isSaved ) {
-            this.notifySaveStatusListener(isSaved);
-        }
+        this.saveStatus = isSaved;
         return;
     }
     
     
     
     /**
+     * Notify the children of the SaveStatusListener that the file has been saved
+     * ONLY IF 'saveStatus' and 'isSaved' are different.
+     */
+    public void setSaveStatusNotifySaveStatusChildren(boolean isSaved) {
+        if(this.saveStatus != isSaved) {
+            this.saveStatus = isSaved;
+            for(SaveStatus ssobj : this.saveStatusChildren) {
+                if(ssobj instanceof SaveStatusListener) {
+                    ((SaveStatusListener)ssobj).setSaveStatusNotifySaveStatusChildren(isSaved);
+                }
+                else if(ssobj instanceof SaveStatus) {
+                    ssobj.setSaveStatus(isSaved);
+                }
+                else {
+                    return;
+                }
+            }
+        }
+    }
+    
+    
+    
+    /**
+     * SaveStatus implementation
+     *
      * Set the SaveStatusListener for this object.
      */
-    public void setSaveStatusListener(final SaveStatusListener statusParent) {
+    public void setSaveStatusListener(SaveStatusListener statusParent) {
         this.statusParent = statusParent;
         
         this.statusParent.addSaveStatusChild(this);
+        return;
+    }
+    
+    
+    
+    /**
+     * SaveStatus implementation
+     *
+     * Set the saveStatus of the SaveStatus object AND notify the SaveStatusListener
+     * ONLY IF 'isSaved' and 'saveStatus' are different.
+     */
+    public void setSaveStatusNotifySaveStatusListener(boolean isSaved) {
+        if( this.saveStatus != isSaved ) {
+            this.saveStatus = isSaved;
+            this.statusParent.childModified(this, this.saveStatus);
+        }
         return;
     }
     
@@ -487,16 +542,7 @@ public class ZeaTable extends JTable
     public void setValueAt(Object aValue, int row, int column) {
         super.setValueAt(aValue, row, column);
 
-        setGuiParentStatus(false);
-        return;
-    }
-    
-    
-    
-    /**
-     * Update the SaveStatusListener when a child has been modified.
-     */
-    public void updateSaveStatusListener(final Object source, boolean isSaved) {
+        this.setSaveStatusNotifySaveStatusListener(false);
         return;
     }
     
@@ -575,33 +621,6 @@ public class ZeaTable extends JTable
         return;
     }
 
-    
-    
-    /**
-     * Get the 6th-super-parent (the gui parent) and set the gui's save status
-     * to 'isSaved'.
-     */
-    private void setGuiParentStatus(boolean isSaved) {
-        //Go up 6 Layers!!!
-        Container parent = this.getParent()
-                               .getParent()
-                               .getParent()
-                               .getParent()
-                               .getParent()
-                               .getParent();
-
-        //alternative to the above (if the position heritage of the ZeaTable
-        //is not known)
-        /*Component parent = this;
-        while( !(parent instanceof JFrame) && parent instanceof Component) {
-            parent = parent.getParent();
-        }*/
-        
-        if(parent instanceof ZeaxanthinGui) {
-            ((ZeaxanthinGui)parent).setSaveStatus(isSaved);
-        }
-    }
-    
     
     
     /**

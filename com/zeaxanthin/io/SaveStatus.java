@@ -32,24 +32,23 @@ public interface SaveStatus
     
     /**
      * Set the saveStatus of the SaveStatus object.
-     * Changes the saveStatus variable to 'isSaved' only if 'saveStatus' is different
-     * from 'isSaved'.
+     * 
+     * This DOES NOT notify the 'statusParent' of changes to this variable.
      */
     public abstract void setSaveStatus(boolean isSaved);
     
     
     
     /**
-     * Notify the bound SaveStatusListener that the object has been modified.
-     * 
-     * This does not modify the saveStatus variable or compare if it has changed.
+     * Bind a SaveStatusListener to the SaveStatus object.
      */
-    public abstract void notifySaveStatusListener(boolean isSaved);
+    public abstract void setSaveStatusListener(SaveStatusListener statusParent);
     
     
     
     /**
-     *
+     * Set the saveStatus of the SaveStatus object AND notify the SaveStatusListener
+     * ONLY IF 'isSaved' and 'saveStatus' are different.
      */
-    public abstract void setSaveStatusListener(final SaveStatusListener statusParent);
+    public abstract void setSaveStatusNotifySaveStatusListener(boolean isSaved);
 }

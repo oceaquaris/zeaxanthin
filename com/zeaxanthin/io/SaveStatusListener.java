@@ -40,6 +40,16 @@ public interface SaveStatusListener
     
     /**
      * Update the SaveStatusListener when a child has been modified.
+     * This function should be called by the child.
      */
-    public abstract void updateSaveStatusListener(final Object source, boolean isSaved);
+    public abstract void childModified(final Object source, boolean isSaved);
+    
+    
+    
+    /**
+     * Notify the children of the SaveStatusListener that the file has been saved
+     * AND set the 'saveStatus' to 'isSaved' ONLY IF 'saveStatus' is different from
+     * 'isSaved'.
+     */
+    public abstract void setSaveStatusNotifySaveStatusChildren(boolean isSaved);
 }
