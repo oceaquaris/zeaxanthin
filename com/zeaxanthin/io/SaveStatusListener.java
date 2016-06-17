@@ -47,6 +47,13 @@ public interface SaveStatusListener
     
     
     /**
+     * Recursively bind a SaveStatusListener to the SaveStatus object.
+     */
+    public abstract void setSaveStatusListenerRecursive(SaveStatusListener statusParent);
+    
+    
+    
+    /**
      * Notify the children of the SaveStatusListener that the file has been saved
      * AND set the 'saveStatus' to 'isSaved' ONLY IF 'saveStatus' is different from
      * 'isSaved'.

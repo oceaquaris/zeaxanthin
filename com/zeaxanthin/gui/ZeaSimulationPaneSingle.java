@@ -92,9 +92,8 @@ public abstract class ZeaSimulationPaneSingle extends JScrollPane
     /**
      * Create an empty ZeaSimulationPaneSingle.
      */
-    public ZeaSimulationPaneSingle(final SaveStatusListener statusParent) {
+    public ZeaSimulationPaneSingle() {
         super();
-        this.setSaveStatusListener(statusParent);
     }
     
     
@@ -102,9 +101,7 @@ public abstract class ZeaSimulationPaneSingle extends JScrollPane
     /**
      * Create a ZeaSimulationPaneSingle from a File.
      */
-    public ZeaSimulationPaneSingle(final SaveStatusListener statusParent,
-                                   File filename,
-                                   ZeaFileIO loadSaver) {
+    public ZeaSimulationPaneSingle(File filename, ZeaFileIO loadSaver) {
         //Call the super-constructor to create a JScrollPane
         super( loadSaver.read(filename) );
         
@@ -117,13 +114,16 @@ public abstract class ZeaSimulationPaneSingle extends JScrollPane
         this.loadSaver = loadSaver;
         
         
+        //Create a saveStatusChildren Vector. ORDER DEPENDENT!! DO THIS FIRST!!
+        this.saveStatusChildren = new Vector<SaveStatus>();
+        
+        
         //Retrieve and store the pointer to the ZeaTable we have just created.
         this.zTable = (ZeaTable)(this.getViewport().getView());
-        this.zTable.setSaveStatusListener(this);
         
         
-        //Set the SaveStatusListener for this object
-        this.setSaveStatusListener(statusParent);
+        //add the ZeaTable as a child of this object
+        addSaveStatusChild(this.zTable);
     }
     
     
@@ -280,6 +280,23 @@ public abstract class ZeaSimulationPaneSingle extends JScrollPane
     
     
     /**
+     * Recursively bind a SaveStatusListener to the SaveStatus object.
+     */
+    public void setSaveStatusListenerRecursive(SaveStatusListener statusParent) {
+        setSaveStatusListener(statusParent);
+        for(SaveStatus sschild : this.saveStatusChildren) {
+            if(sschild instanceof SaveStatusListener) {
+                ((SaveStatusListener)sschild).setSaveStatusListenerRecursive(this);
+            }
+            else {
+                sschild.setSaveStatusListener(this);
+            }
+        }
+    }
+    
+    
+    
+    /**
      * Notify the children of the SaveStatusListener that the file has been saved
      * ONLY IF 'saveStatus' and 'isSaved' are different.
      */
@@ -325,8 +342,6 @@ public abstract class ZeaSimulationPaneSingle extends JScrollPane
      */
     public void setSaveStatusListener(final SaveStatusListener statusParent) {
         this.statusParent = statusParent;
-        
-        this.statusParent.addSaveStatusChild(this);
         return;
     }
     

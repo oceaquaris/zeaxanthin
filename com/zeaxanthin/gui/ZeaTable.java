@@ -105,7 +105,8 @@ public class ZeaTable extends JTable
     
     
     
-    /**
+    /** Complex constructor
+     *
      * Constructs a default ZeaTable that is initialized with a default data model,
      * a default column model, and a default selection model.
      */
@@ -117,7 +118,8 @@ public class ZeaTable extends JTable
     
     
     
-    /**
+    /** Complex constructor
+     *
      * Constructs a ZeaTable with numRows and numColumns of empty cells using
      * ZeaTableModel. The columns will have names of the form "A", "B", "C", etc.
      */
@@ -129,7 +131,8 @@ public class ZeaTable extends JTable
     
     
     
-    /**
+    /** Complex constructor
+     *
      * Constructs a ZeaTable to display the values in the two dimensional array,
      * rowData, with column names, columnNames. rowData is an array of rows. An
      * array of column class identifiers, columnClass, must also be provided to
@@ -143,54 +146,80 @@ public class ZeaTable extends JTable
     
     
     
-    /**
+    /** Basic constructor
+     *
      * Constructs a ZeaTable that is initialized with dm as the data model, a
      * ZeaTableModel column model, and a default selection model.
      */
     public ZeaTable(ZeaTableModel dm) {
-        super(dm);                      //call super-class constructor
+        //call super-class constructor
+        super(dm);
         
-        this.zeaTableModel = dm;        //save the object pointer
         
-        this.zeaTableModel.setSaveStatusListener(this);
+        //save the ZeaTableModel object pointer
+        this.zeaTableModel = dm;
+        
+        
+        //instantiate the Vector used for storing SaveStatus children
         this.saveStatusChildren = new Vector<SaveStatus>();
 
-                                        //create a row sorter
-        this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
         
-        createPopupMenus();             //create popup
+        //add this.zeaTableModel to list of children
+        addSaveStatusChild(this.zeaTableModel);
         
-        setCellSelectionEnabled(true);  //Allow cells in this table to be selected
+        
+        //create a row sorter
+        setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
+        
+        
+        //create popup meunus
+        createPopupMenus();
+        
+        
+        //Allow cells in this table to be selected
+        setCellSelectionEnabled(true);
     }
     
     
     
-    /**
+    /** Basic constructor
+     *
      * Constructs a ZeaTable that is initialized with dm as the data model,
      * cm as the column model, and a default selection model.
      */
     public ZeaTable(ZeaTableModel dm, TableColumnModel cm) {
-        super(dm, cm);                  //call super-class constructor
+        //call super-class constructor
+        super(dm, cm);
         
-        this.zeaTableModel = dm;        //save the object pointer
+        
+        //save the object pointer
+        this.zeaTableModel = dm;
 
+        
         //Instantiating this variable is ORDER DEPENDENT!!! DO THIS FIRST!!!
         this.saveStatusChildren = new Vector<SaveStatus>();
-        
-        //Set a SaveStatusListener
-        this.zeaTableModel.setSaveStatusListener(this);
 
-                                        //create a row sorter
-        this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
         
-        createPopupMenus();             //create popup
+        //add this.zeaTableModel to list of children
+        addSaveStatusChild(this.zeaTableModel);
         
-        setCellSelectionEnabled(true);  //Allow cells in this table to be selected
+        
+        //create a row sorter
+        setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
+        
+        
+        //create popup
+        createPopupMenus();
+        
+        
+        //Allow cells in this table to be selected
+        setCellSelectionEnabled(true);
     }
     
     
     
-    /**
+    /** Basic constructor.
+     *
      * Constructs a ZeaTable that is initialized with dm as the data model,
      * cm as the column model, and sm as the selection model. If any of the
      * parameters are null this method will initialize the table with the 
@@ -199,27 +228,42 @@ public class ZeaTable extends JTable
      * column model is populated with suitable TableColumns for the columns in dm.
      */
     public ZeaTable(ZeaTableModel dm, TableColumnModel cm, ListSelectionModel sm) {
-        super(dm, cm, sm);              //call super-class constructor
-        
-        this.zeaTableModel = dm;        //save the object pointer
+        //call super-class constructor
+        super(dm, cm, sm);
 
+        
+        //save the object pointer
+        this.zeaTableModel = dm;
+
+        
         //Instantiating this variable is ORDER DEPENDENT!!! DO THIS FIRST!!!
         this.saveStatusChildren = new Vector<SaveStatus>();
         
+        
         //Set a SaveStatusListener
         this.zeaTableModel.setSaveStatusListener(this);
+
         
-                                        //create a row sorter
-        this.setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
+        //add this.zeaTableModel to list of children
+        addSaveStatusChild(this.zeaTableModel);
         
-        createPopupMenus();             //create popup
         
-        setCellSelectionEnabled(true);  //Allow cells in this table to be selected
+        //create a row sorter
+        setRowSorter( new TableRowSorter<ZeaTableModel>(dm) );
+        
+        
+        //create popup
+        createPopupMenus();
+        
+        
+        //Allow cells in this table to be selected
+        setCellSelectionEnabled(true);
     }
     
     
     
-    /**
+    /** Complex constructor
+     *
      * Constructs a ZeaTable to display the values in the Vector of Vectors, 
      * rowData, with column names, columnNames. The Vectors contained in rowData
      * should contain the values for that row. A Vector of Strings is also needed
@@ -510,9 +554,24 @@ public class ZeaTable extends JTable
      */
     public void setSaveStatusListener(SaveStatusListener statusParent) {
         this.statusParent = statusParent;
-        
-        this.statusParent.addSaveStatusChild(this);
         return;
+    }
+    
+    
+    
+    /**
+     * Recursively bind a SaveStatusListener to the SaveStatus object.
+     */
+    public void setSaveStatusListenerRecursive(SaveStatusListener statusParent) {
+        setSaveStatusListener(statusParent);
+        for(SaveStatus sschild : this.saveStatusChildren) {
+            if(sschild instanceof SaveStatusListener) {
+                ((SaveStatusListener)sschild).setSaveStatusListenerRecursive(this);
+            }
+            else {
+                sschild.setSaveStatusListener(this);
+            }
+        }
     }
     
     

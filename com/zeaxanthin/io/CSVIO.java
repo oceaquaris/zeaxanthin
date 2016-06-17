@@ -39,6 +39,7 @@ import com.zeaxanthin.gui.simulation.CSVSimulation;
 import com.zeaxanthin.gui.ZeaSimulationPane;
 import com.zeaxanthin.gui.ZeaSimulationPaneSingle;
 import com.zeaxanthin.gui.ZeaTable;
+import com.zeaxanthin.io.SaveStatusListener;
 import com.zeaxanthin.io.ZeaFileIO;
  
 public class CSVIO implements ZeaFileIO
@@ -256,8 +257,10 @@ public class CSVIO implements ZeaFileIO
     /**
      * 
      */
-    public ZeaSimulationPane<?> readZeaSimulationPane(File filename) {
-        return new CSVSimulation( null, filename, this );
+    public ZeaSimulationPane<?> readZeaSimulationPane(File filename, SaveStatusListener statusParent) {
+        CSVSimulation simulation = new CSVSimulation(filename, this );
+        simulation.setSaveStatusListenerRecursive(statusParent);
+        return simulation;
     }
     
     

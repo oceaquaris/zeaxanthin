@@ -184,6 +184,22 @@ public class ZeaTabbedPane extends JTabbedPane implements SaveStatusListener {
     
     
     /**
+     * Recursively bind a SaveStatusListener to the SaveStatus object.
+     */
+    public void setSaveStatusListenerRecursive(SaveStatusListener statusParent) {
+        for(SaveStatus sschild : this.saveStatusChildren) {
+            if(sschild instanceof SaveStatusListener) {
+                ((SaveStatusListener)sschild).setSaveStatusListenerRecursive(this);
+            }
+            else {
+                sschild.setSaveStatusListener(this);
+            }
+        }
+    }
+    
+    
+    
+    /**
      * Notify the children of the SaveStatusListener that the file has been saved
      * ONLY IF 'saveStatus' and 'isSaved' are different.
      */

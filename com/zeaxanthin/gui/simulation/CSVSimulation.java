@@ -34,9 +34,7 @@ public class CSVSimulation extends ZeaSimulationPaneSingle
     /**
      * Constructor for objects of class CSVSimulation
      */
-    public CSVSimulation(final SaveStatusListener statusParent,
-                         File filename,
-                         ZeaFileIO loadSaver) {
-        super(statusParent, filename, loadSaver);
+    public CSVSimulation(File filename, ZeaFileIO loadSaver) {
+        super(filename, loadSaver);
     }
 }

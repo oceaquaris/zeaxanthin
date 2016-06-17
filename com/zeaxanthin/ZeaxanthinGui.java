@@ -354,6 +354,24 @@ public class ZeaxanthinGui extends JFrame
     }
     
     
+    private void openTab(File filename) {
+        if(this.tabbedPane == null) {
+            this.tabbedPane = new ZeaTabbedPane();
+            this.add(this.tabbedPane);
+        }
+        
+        if(ZeaFileIO.getExtension( filename )
+                    .equalsIgnoreCase(FileFilterCSV.CSV_FILE_EXT) /*.csv*/) {
+            ZeaSimulationPane<?> pane = csvio.readZeaSimulationPane(filename, this.tabbedPane);
+            
+            String title = pane.getLoadedFile().getName();
+        
+            this.tabbedPane.addTab(title, null, pane.getSelf(), null);
+        }
+        else {}
+        
+        setVisible(true);
+    }
     private void openTab(ZeaSimulationPane<?> pane) {
         if(this.tabbedPane == null) {
             this.tabbedPane = new ZeaTabbedPane();
@@ -478,16 +496,9 @@ public class ZeaxanthinGui extends JFrame
             int returnValue = fileChooser.showOpenDialog(this);
             
             if(returnValue == JFileChooser.APPROVE_OPTION) {
-                this.loadedFile = fileChooser.getSelectedFile();
+                File file = fileChooser.getSelectedFile();
                 
-                if(ZeaFileIO.getExtension( loadedFile )
-                            .equalsIgnoreCase(FileFilterCSV.CSV_FILE_EXT) /*.csv*/) {
-                    openTab( csvio.readZeaSimulationPane(loadedFile));   //call csv filter
-                                                         //and create table
-                }
-                else {
-                    return;
-                }
+                openTab(file);
             }
         }
         

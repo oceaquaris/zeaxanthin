@@ -82,7 +82,7 @@ public interface ZeaFileIO
     /**
      * Read a file and return a loaded ZeaSimulationPane.
      */
-    public abstract ZeaSimulationPane<?> readZeaSimulationPane(File filename);
+    public abstract ZeaSimulationPane<?> readZeaSimulationPane(File filename, SaveStatusListener statusParent);
     
     
     

@@ -55,9 +55,12 @@ public class ZeaTableModel extends DefaultTableModel
      * and zero rows. No column class identifiers are specified.
      */
     public ZeaTableModel() {
-        super();                        //use super-class constructor
-        this.columnClassIdentifiers =   //make an empty Vector
-             new Vector<String>();
+        //use super-class constructor
+        super();
+        
+        
+        //make an empty Vector
+        this.columnClassIdentifiers = new Vector<String>();
     }
     
     
@@ -68,7 +71,9 @@ public class ZeaTableModel extends DefaultTableModel
      * a String.
      */
     public ZeaTableModel(int rowCount, int columnCount) {
-        super(rowCount, columnCount);   //use super-class constructor
+        //use super-class constructor
+        super(rowCount, columnCount);
+        
         
         //make Vector and populate it with the default String class specification
         this.columnClassIdentifiers = new Vector<String>();
@@ -235,22 +240,6 @@ public class ZeaTableModel extends DefaultTableModel
     
     
     /**
-     * SaveStatus implementation
-     *
-     * Set the saveStatus of the SaveStatus object AND notify the SaveStatusListener
-     * ONLY IF 'isSaved' and 'saveStatus' are different.
-     */
-    public void setSaveStatusNotifySaveStatusListener(boolean isSaved) {
-        if( this.saveStatus != isSaved ) {
-            this.saveStatus = isSaved;
-            this.statusParent.childModified(this, this.saveStatus);
-        }
-        return;
-    }
-    
-    
-    
-    /**
      * Set the Vector of Strings containing the column class identifiers.
      */
     public void setColumnClassIdentifiers(Vector<String> columnClassIdentifiers) {
@@ -274,12 +263,28 @@ public class ZeaTableModel extends DefaultTableModel
     
     
     /**
+     * SaveStatus implementation
+     *
      * Set the SaveStatusListener for this object.
      */
     public void setSaveStatusListener(SaveStatusListener statusParent) {
         this.statusParent = statusParent;
-        
-        this.statusParent.addSaveStatusChild(this);
+        return;
+    }
+    
+    
+    
+    /**
+     * SaveStatus implementation
+     *
+     * Set the saveStatus of the SaveStatus object AND notify the SaveStatusListener
+     * ONLY IF 'isSaved' and 'saveStatus' are different.
+     */
+    public void setSaveStatusNotifySaveStatusListener(boolean isSaved) {
+        if( this.saveStatus != isSaved ) {
+            this.saveStatus = isSaved;
+            this.statusParent.childModified(this, this.saveStatus);
+        }
         return;
     }
     
